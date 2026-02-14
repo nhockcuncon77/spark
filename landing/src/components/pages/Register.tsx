@@ -48,7 +48,7 @@ export const Register = () => {
         window.location.href = getAppUrl();
         return;
       }
-      setError(result.error || "Registration failed.");
+      setError(!result.success ? result.error : "Registration failed.");
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {

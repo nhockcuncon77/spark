@@ -27,7 +27,7 @@ export const Login = () => {
         window.location.href = getAppUrl();
         return;
       }
-      setError(result.error || "Invalid email or password.");
+      setError(!result.success ? result.error : "Invalid email or password.");
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
