@@ -6,7 +6,7 @@
     },
     {
       "source": "/docs/:match*",
-      "destination": "https://spark.example.com/docs/:match*"
+      "destination": "https://spark-frontend-tlcj.onrender.com/docs/:match*"
     },
     { "source": "/(.*)", "destination": "/" }
   ]

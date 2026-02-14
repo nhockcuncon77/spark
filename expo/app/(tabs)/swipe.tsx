@@ -235,7 +235,7 @@ export default function SwipeScreen() {
             title: "Spark — Meet the person first. Looks later.",
             message:
               "Spark is a personality-first dating app. Meet people through hobbies and conversation before photos.",
-            url: "https://spark.example.com",
+            url: "https://spark-frontend-tlcj.onrender.com",
           };
 
       const result = await Share.share(shareContent, {

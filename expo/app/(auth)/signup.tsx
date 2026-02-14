@@ -659,7 +659,7 @@ export default function SignupScreen() {
                         className="text-primary font-semibold text-sm"
                         onPress={() =>
                           Linking.openURL(
-                            "https://spark.example.com/docs/legal/terms",
+                            "https://spark-frontend-tlcj.onrender.com/docs/terms",
                           )
                         }
                       >
@@ -671,7 +671,7 @@ export default function SignupScreen() {
                         className="text-primary font-semibold text-sm"
                         onPress={() =>
                           Linking.openURL(
-                            "https://spark.example.com/docs/legal/privacy",
+                            "https://spark-frontend-tlcj.onrender.com/docs/privacy",
                           )
                         }
                       >

@@ -75,11 +75,11 @@ Optional (for full features):
 
 ### Environment variables (optional)
 
-If the landing page calls your API, add:
+For the **landing** (and when using `build:with-app`, for the **Expo web app** baked into `/app/`):
 
-- `VITE_API_URL` or similar (if you use it in the landing) – set to your backend URL, e.g. `https://spark-xxxx.onrender.com`
-
-(Only needed if the landing has runtime config; many setups just hardcode or build with a default.)
+- **`EXPO_PUBLIC_SPARK_API_URL`** (or **`EXPO_PUBLIC_API_URL`**) – Backend API URL, e.g. `https://spark-xxxx.onrender.com`. The Expo web app reads this at build time; set it in the Render static site’s **Environment** so the built app points to your API.
+- **`VITE_SPARK_APP_URL`** – Only if you host the web app elsewhere; otherwise the landing uses `/app/` by default.
+- **`EXPO_PUBLIC_POSTHOG_API_KEY`** / **`EXPO_PUBLIC_POSTHOG_HOST_URL`** – Optional; if unset, PostHog is skipped.
 
 ---
 

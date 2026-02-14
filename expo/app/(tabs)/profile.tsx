@@ -415,7 +415,7 @@ export default function ProfileScreen() {
                   <Pressable
                     onPress={() =>
                       Linking.openURL(
-                        "https://spark.example.com/docs/legal/privacy",
+                        "https://spark-frontend-tlcj.onrender.com/docs/privacy",
                       )
                     }
                     className="bg-white/5 border border-white/10 rounded-xl p-4 mb-2 flex-row justify-between items-center"
@@ -484,7 +484,7 @@ export default function ProfileScreen() {
                                         text: "Open Deletion Page",
                                         onPress: () =>
                                           Linking.openURL(
-                                            "https://spark.example.com/delete-account",
+                                            "https://spark-frontend-tlcj.onrender.com/delete-account",
                                           ),
                                       },
                                     ],

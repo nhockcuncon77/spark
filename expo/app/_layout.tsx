@@ -370,20 +370,28 @@ export default function RootLayout() {
     return null;
   }
 
+  const content = (
+    <ThemeProvider value={SparkDarkTheme}>
+      <RootLayoutNav />
+      <StatusBar style="light" />
+    </ThemeProvider>
+  );
+
   return (
     <AnimatedSplashScreen>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <PostHogProvider
-          apiKey={config.posthog_api_key}
-          options={{
-            host: config.posthog_host_url,
-          }}
-        >
-          <ThemeProvider value={SparkDarkTheme}>
-            <RootLayoutNav />
-            <StatusBar style="light" />
-          </ThemeProvider>
-        </PostHogProvider>
+        {config.posthog_api_key ? (
+          <PostHogProvider
+            apiKey={config.posthog_api_key}
+            options={{
+              host: config.posthog_host_url,
+            }}
+          >
+            {content}
+          </PostHogProvider>
+        ) : (
+          content
+        )}
       </GestureHandlerRootView>
     </AnimatedSplashScreen>
   );

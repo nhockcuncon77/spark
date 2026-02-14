@@ -139,7 +139,7 @@ func baseTemplate(title, subtitle, message, cta string) string {
 
 			%s
 
-			<a href="https://spark.example.com"
+			<a href="https://spark-frontend-tlcj.onrender.com"
 			   style="display:inline-block;margin-top:16px;padding:14px 32px;
 			   background:linear-gradient(135deg,#7C3AED,#8B5CF6);
 			   color:#ffffff;text-decoration:none;border-radius:999px;

@@ -5,8 +5,8 @@
 
 Spark is a next-generation dating platform that challenges the appearance-first culture of modern dating apps. Instead of swiping on photos, users connect through personality, hobbies, values, and meaningful conversations — with photos revealed only after mutual interest and genuine interaction.
 
-🌐 Live: https://spark.example.com  
-📚 Docs: https://spark.example.com/docs  
+🌐 Live: https://spark-frontend-tlcj.onrender.com  
+📚 Docs: https://spark-frontend-tlcj.onrender.com/docs  
 
 ---
 
@@ -160,8 +160,8 @@ Reach out via the website.
 
 ## 📩 Contact
 
-Website: https://spark.example.com  
-Documentation: https://spark.example.com/docs  
+Website: https://spark-frontend-tlcj.onrender.com  
+Documentation: https://spark-frontend-tlcj.onrender.com/docs  
 
 ---
 
