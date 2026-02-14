@@ -10,6 +10,7 @@ import (
 
 	"github.com/MelloB1989/karma/ai"
 	"github.com/MelloB1989/karma/orm"
+	"github.com/MelloB1989/karma/utils"
 )
 
 // ReplyTone represents the tone for AI-generated replies
