@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,14 +53,12 @@ export const Navbar = () => {
           >
             Safety
           </a>
-          <button
+          <Link
+            to="/docs"
             className="px-5 py-2.5 rounded-full bg-brand-purple hover:bg-brand-purple-light text-white font-medium text-sm transition-all hover:shadow-[0_0_20px_rgba(124,58,237,0.5)]"
-            onClick={() =>
-              window.open("https://spark.example.com/docs", "_blank")
-            }
           >
             Documentation
-          </button>
+          </Link>
         </div>
 
         {/* Mobile Toggle */}
@@ -102,14 +101,13 @@ export const Navbar = () => {
               >
                 Safety
               </a>
-              <button
-                className="w-full py-3 rounded-full bg-brand-purple text-white font-medium text-lg"
-                onClick={() =>
-                  window.open("https://spark.example.com/docs", "_blank")
-                }
+              <Link
+                to="/docs"
+                className="w-full py-3 rounded-full bg-brand-purple text-white font-medium text-lg text-center block"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 Documentation
-              </button>
+              </Link>
             </div>
           </motion.div>
         )}

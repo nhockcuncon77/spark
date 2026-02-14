@@ -1,4 +1,5 @@
 import { motion, useScroll, useTransform } from "framer-motion";
+import { Link } from "react-router-dom";
 import { ChevronDown, Sparkles } from "lucide-react";
 
 export const Hero = () => {
@@ -77,15 +78,13 @@ export const Hero = () => {
           transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center gap-4 mb-20 z-20"
         >
-          <button
-            className="relative group px-9 py-4 bg-white text-bg-primary font-bold rounded-full text-lg overflow-hidden transition-all hover:shadow-[0_0_50px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95"
-            onClick={() =>
-              window.open("https://spark.example.com/docs", "_blank")
-            }
+          <Link
+            to="/docs"
+            className="relative group px-9 py-4 bg-white text-bg-primary font-bold rounded-full text-lg overflow-hidden transition-all hover:shadow-[0_0_50px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 inline-block text-center"
           >
             <span className="relative z-10">Documentation</span>
             <div className="absolute inset-0 bg-gradient-to-r from-brand-purple-light to-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-          </button>
+          </Link>
 
           <button className="px-9 py-4 rounded-full border border-border-medium text-text-primary font-medium text-lg hover:bg-white/5 hover:border-white/30 transition-all backdrop-blur-sm">
             Download Latest

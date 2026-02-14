@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export const Footer = () => {
   return (
     <footer className="py-12 border-t border-border-subtle bg-bg-surface">
@@ -13,24 +15,24 @@ export const Footer = () => {
           </div>
 
           <div className="flex gap-8 text-sm text-text-secondary">
-            <a
-              href="https://spark.example.com/docs/legal/privacy"
+            <Link
+              to="/docs/privacy"
               className="hover:text-brand-purple-light transition-colors"
             >
               Privacy
-            </a>
-            <a
-              href="https://spark.example.com/docs/legal/terms"
+            </Link>
+            <Link
+              to="/docs/terms"
               className="hover:text-brand-purple-light transition-colors"
             >
               Terms
-            </a>
-            <a
-              href="/delete-account"
+            </Link>
+            <Link
+              to="/delete-account"
               className="hover:text-brand-purple-light transition-colors"
             >
               Delete Account
-            </a>
+            </Link>
             <a
               href="mailto:support@spark.example.com"
               className="hover:text-brand-purple-light transition-colors"
