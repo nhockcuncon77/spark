@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { DocCard, DocCardGroup } from "../docs/DocCard";
 
 export const DocsAbout = () => (

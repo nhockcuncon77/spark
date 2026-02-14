@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const nav = [

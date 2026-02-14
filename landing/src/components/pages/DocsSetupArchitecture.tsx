@@ -1,5 +1,5 @@
 import { DocCard, DocCardGroup } from "../docs/DocCard";
-import { CodeBlock, InlineCode } from "../docs/DocProse";
+import { InlineCode } from "../docs/DocProse";
 
 export const DocsSetupArchitecture = () => (
   <>
