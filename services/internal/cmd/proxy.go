@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"net/http/httputil"
 	"net/url"
 	"strings"
@@ -257,8 +258,12 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartProxyServer(ctx context.Context) error {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "9000"
+	}
 	server := &http.Server{
-		Addr:              ":9000",
+		Addr:              ":" + port,
 		Handler:           http.HandlerFunc(proxyHandler),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       120 * time.Second,
