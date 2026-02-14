@@ -4,6 +4,7 @@ package graph
 
 import (
 	"spark/internal/graph/model"
+	"spark/internal/graph/directives"
 	"spark/internal/models"
 	"bytes"
 	"context"

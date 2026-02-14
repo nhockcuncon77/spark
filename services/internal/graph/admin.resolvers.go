@@ -470,13 +470,15 @@ func (r *queryResolver) AdminVerifications(ctx context.Context, status *string, 
 	}
 
 	verORM := orm.Load(&models.UserVerification{})
-	defer verORM.Close()
-
 	var vers []models.UserVerification
 	if status != nil {
-		verORM.GetByFieldEquals("Status", *status).Scan(&vers)
-	} else {
-		verORM.GetAll().Scan(&vers)
+		vers, _ = ormcompat.GetByFieldEqualsSlice[models.UserVerification](verORM, "Status", *status)
+	} else if res, err := verORM.GetAll(); err == nil {
+		if s, ok := res.(*[]models.UserVerification); ok {
+			vers = *s
+		} else if s, ok := res.([]models.UserVerification); ok {
+			vers = s
+		}
 	}
 
 	result := make([]*model.AdminVerification, len(vers))
