@@ -1,0 +1,50 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Streaks Schema
+# This file defines the GraphQL schema for messaging streaks.
+
+type MatchStreak {
+    id: String!
+    match_id: String!
+    current_streak: Int!
+    longest_streak: Int!
+    last_message_date: Time
+    streak_start_date: Time
+    she_last_message: Time
+    he_last_message: Time
+    # Computed fields
+    is_at_risk: Boolean!  # True if less than 4 hours left
+    hours_remaining: Int  # Hours until streak breaks (null if broken)
+}
+
+type StreakMilestone {
+    days: Int!
+    emoji: String!
+    title: String!
+    achieved_at: Time
+}
+
+type UserStreakStats {
+    total_active_streaks: Int!
+    longest_streak_ever: Int!
+    current_milestones: [StreakMilestone!]!
+}
+
+# ---------- Queries ----------
+
+extend type Query {
+    """
+    Get streak information for a specific match.
+    """
+    matchStreak(match_id: String!): MatchStreak @auth
+
+    """
+    Get all active streaks for the current user.
+    """
+    myStreaks: [MatchStreak!]! @auth
+
+    """
+    Get user's overall streak statistics.
+    """
+    myStreakStats: UserStreakStats! @auth
+}

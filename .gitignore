@@ -1,0 +1,9 @@
+node_modules
+.DS_Store
+.env
+.env.prod
+.env.stage
+.env.test
+llm-docs
+services/tools/chat_tester
+services/tools/ai_agent

@@ -1,0 +1,8 @@
+type Query
+type Mutation
+# type Subscription
+
+scalar Time
+
+directive @auth on FIELD_DEFINITION
+# directive @paid_user on FIELD_DEFINITION

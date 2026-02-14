@@ -1,0 +1,48 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# AI Schema
+# This file defines the GraphQL schema for AI-powered features.
+
+type AIReply {
+    id: String!
+    text: String!
+    tone: String!  # "flirty", "friendly", "witty", "thoughtful"
+}
+
+type AIReplyResponse {
+    replies: [AIReply!]!
+    remaining_today: Int!  # -1 for unlimited
+}
+
+type AIUsageStatus {
+    can_use: Boolean!
+    remaining_today: Int!  # -1 for unlimited
+    resets_at: Time
+}
+
+# ---------- Inputs ----------
+
+input GenerateAIRepliesInput {
+    chat_id: String!
+    context_messages: Int  # How many recent messages to consider (default 10)
+    tone: String  # Optional preferred tone
+}
+
+# ---------- Queries ----------
+
+extend type Query {
+    """
+    Check if user can use AI features and remaining quota.
+    """
+    aiUsageStatus: AIUsageStatus! @auth
+}
+
+# ---------- Mutations ----------
+
+extend type Mutation {
+    """
+    Generate AI-powered reply suggestions for a chat.
+    Requires Plus plan or higher.
+    """
+    generateAIReplies(input: GenerateAIRepliesInput!): AIReplyResponse! @auth
+}

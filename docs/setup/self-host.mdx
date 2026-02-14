@@ -1,0 +1,200 @@
+---
+title: Self-host Blindly
+description: Deploy Blindly using Docker Compose or Kubernetes, and set up the mobile app via Expo, APKs, or app stores.
+icon: "rocket"
+---
+
+import { Tabs, Tab, Steps, Callout, Card, CardGroup } from 'nextra/components'
+
+<img
+  className="block dark:hidden w-56"
+  src="/images/main-trans.png"
+  alt="Blindly Logo Light"
+/>
+<img
+  className="hidden dark:block w-56"
+  src="/images/main-trans.png"
+  alt="Blindly Logo Dark"
+/>
+
+## Overview
+
+You can self-host Blindly in a few ways:
+
+<CardGroup cols={3}>
+  <Card title="Docker Compose" icon="boxes-packing" href="#docker-compose">
+    Easiest way to run locally or on a single VM — brings up Postgres, Redis, migrates the DB, and starts the Go backend.
+  </Card>
+  <Card title="Kubernetes" icon="cloud" href="#kubernetes">
+    Recommended for production — use the provided deployment manifest with Ingress for TLS and routing.
+  </Card>
+  <Card title="Mobile App" icon="phone" href="#mobile-app-options">
+    Use Expo EAS for instant installs via QR, or build/download APKs for Android.
+  </Card>
+</CardGroup>
+
+---
+
+## Prerequisites
+
+- Docker and Docker Compose (for local/VM installs)
+- Kubernetes cluster with `kubectl` access (for K8s installs)
+- Domain and TLS certificate (recommended for production)
+- `.env` file to supply additional secrets and configuration
+
+<Callout type="warning" emoji="🔐">
+  The backend requires `DATABASE_URL` and `REDIS_URL`, which are set automatically by the Docker Compose setup. Any other environment variables must be provided via a `.env` file or your orchestrator’s secret management.
+</Callout>
+
+---
+
+## Docker Compose
+id: docker-compose
+
+The Compose setup runs:
+- Postgres (with a preconfigured database/user)
+- Redis
+- A migration job (Drizzle) to apply schema migrations
+- The Go backend service (GraphQL + HTTP endpoints, port `9000`)
+
+### Steps
+
+<Steps>
+  <li>
+    Create a `.env` file in the repository root (`blindly/.env`) with any required secrets and configs used by the backend. The Compose file already sets:
+    <ul>
+      <li><code>DATABASE_URL</code> to <code>postgres://blindly:blindly_password@postgres:5432/blindly?sslmode=disable</code></li>
+      <li><code>REDIS_URL</code> to <code>redis://redis:6379</code></li>
+    </ul>
+  </li>
+  <li>
+    Build and start all services:
+    ```bash
+    docker compose up --build
+    ```
+    Or run in detached mode:
+    ```bash
+    docker compose up --build -d
+    ```
+  </li>
+  <li>
+    Verify the backend is reachable:
+    ```bash
+    curl http://localhost:9000/health
+    ```
+    You should see a healthy response if everything is running.
+  </li>
+</Steps>
+
+### Notes
+
+- The migration job waits for Postgres to be healthy and then applies the Drizzle migrations located under `db/drizzle/`.
+- The backend exposes port `9000`. You can place a reverse proxy (e.g., NGINX) in front if you need TLS and a public hostname.
+
+---
+
+## Kubernetes
+id: kubernetes
+
+Use the provided deployment manifest to run Blindly on a Kubernetes cluster. It includes:
+
+- Deployment with the backend service (`containerPort: 9000`)
+- Service exposing port `80` to route to the backend’s `9000`
+- Ingress with common NGINX annotations and TLS
+
+### Review and apply the manifest
+
+The manifest is at:
+
+```bash
+# Reference:
+# blindly/deployment.yaml
+kubectl apply -f deployment.yaml
+```
+
+Key points in the manifest:
+
+- The `Service` maps `port: 80` → `targetPort: 9000`.
+- The `Ingress` contains NGINX annotations:
+  - `ssl-redirect`, body size limits, timeouts, and buffering options
+- TLS is configured for `blindly.apps.mellob.in` (replace with your domain and secret)
+- The backend image is `registry.prod.lyzn.in/blindly` — update this to your registry if needed.
+
+### Environment configuration
+
+Provide environment variables and secrets via Kubernetes `Secret` + `Deployment` `envFrom` or `env` entries. At minimum:
+
+- `DATABASE_URL` — your Postgres connection string
+- `REDIS_URL` — your Redis connection string
+- Other secrets as required by your `.env` (see your backend docs)
+
+<Callout type="info" emoji="🛠️">
+  Add readiness/liveness probes (e.g., HTTP GET `/health`) and resource limits per your production standards.
+</Callout>
+
+---
+
+## Mobile App Options
+id: mobile-app-options
+
+There are three primary ways to get the app running:
+
+<Tabs>
+  <Tab title="Expo (Recommended)">
+    Use **Expo EAS** to install the app instantly via QR — works on iOS and Android.
+
+    <img
+      src="/images/eas-update.svg"
+      alt="Expo EAS Update QR"
+      className="w-56"
+    />
+
+    Steps:
+    - Install the Expo Go app from the App Store/Play Store.
+    - Scan the latest build QR (above or from your EAS build page).
+    - The app loads over-the-air — no store submission required for testing.
+  </Tab>
+  <Tab title="APK (Android)">
+    - Build the APK from source using your build pipeline or EAS.
+    - Or download the latest APK from your project’s releases page.
+    - Install the APK on your device or emulator.
+  </Tab>
+  <Tab title="From Scratch">
+    - Clone the repo and set up the Expo project (Node.js, Yarn/Bun, Expo CLI).
+    - Configure the GraphQL endpoint and environment variables (point the app to your backend domain).
+    - Run in development:
+      ```bash
+      expo start
+      ```
+    - For production builds, use EAS Build:
+      ```bash
+      eas build -p android
+      eas build -p ios
+      ```
+  </Tab>
+</Tabs>
+
+### App configuration
+
+Ensure the app points to your backend host:
+- GraphQL endpoint: `https://your-domain/graphql` (behind your proxy/Ingress)
+- REST endpoints for specific flows like health, uploads, webhooks
+
+Use your mobile environment handling strategy (app config files or runtime variables) to switch between staging and production.
+
+---
+
+## Choosing a path
+
+- If you’re testing locally or on a single VM, **Docker Compose** is a great starting point.
+- If you’re running in production, prefer **Kubernetes** with proper TLS, scaling, and observability.
+- For mobile distribution, **Expo EAS QR** is the fastest way to share and test. Use **APK** when you need an installable Android artifact.
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="cubes" href="/docs/setup/architecture">
+    Learn how the backend, frontend, and database fit together.
+  </Card>
+  <Card title="Dev Setup" icon="toolbox" href="/docs/setup/dev-setup">
+    Set up your local development environment.
+  </Card>
+</CardGroup>

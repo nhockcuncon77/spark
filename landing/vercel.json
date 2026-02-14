@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/docs",
+      "destination": "https://spark.example.com/docs"
+    },
+    {
+      "source": "/docs/:match*",
+      "destination": "https://spark.example.com/docs/:match*"
+    },
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}

@@ -1,0 +1,39 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Profile Activity Schema
+# This file defines the GraphQL schema for the profile activities such as pokes, profile views and superlikes.
+
+enum ActivityType {
+    POKE
+    PROFILE_VIEW
+    SUPERLIKE
+    LIKE
+    POSTLOVE
+    POSTCOMMENT
+    POSTVIEW
+    COMMENTLOVE
+}
+
+enum ActivityClass {
+    RECEIVED
+    SENT
+    ALL
+}
+
+type UserProfileActivity {
+    id: String!
+    type: ActivityType!
+    target_user: UserPublic!
+    class: ActivityClass!
+}
+
+extend type Query {
+    profileActivities(class: ActivityClass): [UserProfileActivity]! @auth
+}
+
+extend type Mutation {
+    createProfileActivity(
+        type: ActivityType!
+        target_user_id: String!
+    ): UserProfileActivity! @auth
+}

@@ -1,0 +1,186 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Admin Schema
+# This file defines the GraphQL schema for admin dashboard operations.
+
+type AdminStats {
+    total_users: Int!
+    active_users_today: Int!
+    active_users_week: Int!
+    total_matches: Int!
+    matches_today: Int!
+    total_messages: Int!
+    messages_today: Int!
+    pending_verifications: Int!
+    pending_reports: Int!
+    # Subscription stats
+    total_subscribers: Int!
+    subscribers_by_plan: [PlanSubscriberCount!]!
+    revenue_this_month: Int!  # cents
+}
+
+type PlanSubscriberCount {
+    plan_id: String!
+    plan_name: String!
+    count: Int!
+}
+
+type AdminUser {
+    id: String!
+    first_name: String!
+    last_name: String!
+    email: String!
+    pfp: String
+    gender: String
+    is_verified: Boolean!
+    is_banned: Boolean!
+    role: String!
+    subscription_plan_id: String
+    created_at: Time!
+    last_active: Time
+}
+
+type AdminUserList {
+    users: [AdminUser!]!
+    total: Int!
+    page: Int!
+    per_page: Int!
+}
+
+type AdminVerification {
+    id: String!
+    user_id: String!
+    user: AdminUser
+    media: [String!]!
+    status: String!
+    created_at: Time!
+}
+
+type AdminReport {
+    id: String!
+    user_id: String!
+    reporter: AdminUser
+    target_id: String!
+    target: AdminUser
+    reason: String!
+    additional_info: String
+    media: [String!]
+    status: String!
+    created_at: Time!
+}
+
+type MassNotificationResult {
+    success: Boolean!
+    sent_count: Int!
+    failed_count: Int!
+    message: String
+}
+
+# ---------- Inputs ----------
+
+input AdminUserFilters {
+    search: String
+    is_verified: Boolean
+    is_banned: Boolean
+    role: String
+    subscription_plan_id: String
+    created_after: Time
+    created_before: Time
+}
+
+input MassNotificationInput {
+    title: String!
+    body: String!
+    segment: String  # "all", "subscribers", "free", "inactive"
+    user_ids: [String!]  # Optional: specific user IDs
+}
+
+# ---------- Queries ----------
+
+extend type Query {
+    """
+    Get admin dashboard statistics.
+    Requires admin role.
+    """
+    adminStats: AdminStats! @auth
+
+    """
+    List users with filtering and pagination.
+    Requires admin role.
+    """
+    adminUsers(
+        filters: AdminUserFilters
+        page: Int
+        per_page: Int
+    ): AdminUserList! @auth
+
+    """
+    Get a specific user by ID (admin view).
+    Requires admin role.
+    """
+    adminUser(id: String!): AdminUser! @auth
+
+    """
+    List pending verifications.
+    Requires admin role.
+    """
+    adminVerifications(status: String, page: Int, per_page: Int): [AdminVerification!]! @auth
+
+    """
+    List reports.
+    Requires admin role.
+    """
+    adminReports(status: String, page: Int, per_page: Int): [AdminReport!]! @auth
+}
+
+# ---------- Mutations ----------
+
+extend type Mutation {
+    """
+    Ban or unban a user.
+    Requires admin role.
+    """
+    adminBanUser(user_id: String!, banned: Boolean!): AdminUser! @auth
+
+    """
+    Change a user's role.
+    Requires admin role.
+    """
+    adminChangeRole(user_id: String!, role: String!): AdminUser! @auth
+
+    """
+    Approve or reject a verification request.
+    Requires admin role.
+    """
+    adminResolveVerification(
+        verification_id: String!
+        status: String!  # "verified" or "rejected"
+        reason: String
+    ): AdminVerification! @auth
+
+    """
+    Resolve a report.
+    Requires admin role.
+    """
+    adminResolveReport(
+        report_id: String!
+        status: String!  # "resolved", "dismissed", "action_taken"
+        action: String   # "warn", "ban", "none"
+    ): AdminReport! @auth
+
+    """
+    Send mass push notification.
+    Requires admin role.
+    """
+    adminSendNotification(input: MassNotificationInput!): MassNotificationResult! @auth
+
+    """
+    Manually grant a subscription to a user.
+    Requires admin role.
+    """
+    adminGrantSubscription(
+        user_id: String!
+        plan_id: String!
+        duration_days: Int!
+    ): Boolean! @auth
+}

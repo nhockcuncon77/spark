@@ -1,0 +1,27 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Reports Schema
+# This file defines the GraphQL schema for reporting functionality.
+
+type Report {
+    id: String!
+    user_id: String!
+    target_id: String!
+    reason: String!
+    additional_info: String!
+    media: [Media]!
+    status: String!
+    created_at: Time!
+    updated_at: Time!
+}
+
+input CreateReportInput {
+    target_id: String!
+    reason: String!
+    additional_info: String
+    media: [MediaInput]!
+}
+
+extend type Mutation {
+    createReport(input: CreateReportInput!): Report! @auth
+}

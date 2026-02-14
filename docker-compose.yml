@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spark-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: spark
+      POSTGRES_PASSWORD: spark_password
+      POSTGRES_DB: spark
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spark -d spark"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: spark-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: node:20-alpine
+    container_name: spark-migrate
+    working_dir: /app
+    volumes:
+      - ./db:/app
+    environment:
+      DB_HOST: postgres
+      DB_USER: spark
+      DB_PASSWORD: spark_password
+      DB_NAME: spark
+      DB_PORT: 5432
+      DB_SSL: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "npm install drizzle-kit drizzle-orm pg && npx drizzle-kit migrate"
+
+  backend:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        - VERSION=${VERSION:-dev}
+    container_name: spark-backend
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      DATABASE_URL: "postgres://spark:spark_password@postgres:5432/spark?sslmode=disable"
+      REDIS_URL: "redis://redis:6379"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  redis_data:

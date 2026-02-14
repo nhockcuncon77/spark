@@ -1,0 +1,177 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Community Schema
+# This file defines the GraphQL schema for community-related features.
+
+enum MediaType {
+    IMAGE
+    VIDEO
+    AUDIO
+    FILE
+}
+
+type Media {
+    id: String!
+    url: String!
+    type: MediaType!
+    created_at: Time!
+}
+
+type Post {
+    id: String!
+    user_id: String!
+    created_at: Time!
+    content: String!
+    media: [Media]!
+    likes: Int!
+    comments: Int!
+    views: Int!
+    user: UserPublic!
+    is_liked: Boolean!
+}
+
+type Comment {
+    id: String!
+    post_id: String!
+    user_id: String!
+    reply_to_id: String
+    created_at: Time!
+    content: String!
+    likes: Int!
+    user: UserPublic!
+    is_liked: Boolean!
+}
+
+type PostsConnection {
+    posts: [Post]!
+    page_info: PageInfo!
+    total_count: Int!
+}
+
+type CommentsConnection {
+    comments: [Comment]!
+    page_info: PageInfo!
+    total_count: Int!
+}
+
+type PageInfo {
+    has_next_page: Boolean!
+    next_cursor: String
+    has_previous_page: Boolean!
+    previous_cursor: String
+}
+
+input PostFilterInput {
+    user_id: String
+    search_content: String
+    created_after: Time
+    created_before: Time
+    min_likes: Int
+    min_comments: Int
+    min_views: Int
+    has_media: Boolean
+}
+
+input CommentFilterInput {
+    post_id: String
+    user_id: String
+    reply_to_id: String
+    parent_only: Boolean # Only top-level comments (reply_to_id is null)
+    search_content: String
+    created_after: Time
+    created_before: Time
+    min_likes: Int
+}
+
+enum PostSortField {
+    CREATED_AT
+    LIKES
+    COMMENTS
+    VIEWS
+}
+
+enum CommentSortField {
+    CREATED_AT
+    LIKES
+}
+
+enum SortOrder {
+    ASC
+    DESC
+}
+
+input SortInput {
+    field: String!
+    order: SortOrder!
+}
+
+input CreatePostInput {
+    content: String!
+    media: [MediaInput]
+}
+
+input UpdatePostInput {
+    post_id: String!
+    content: String
+    media: [MediaInput]
+}
+
+input CreateCommentInput {
+    post_id: String!
+    reply_to_id: String
+    content: String!
+}
+
+input UpdateCommentInput {
+    comment_id: String!
+    content: String!
+}
+
+input MediaInput {
+    id: String!
+    url: String!
+    type: MediaType!
+    created_at: String!
+}
+
+extend type Query {
+    get_posts(
+        filter: PostFilterInput
+        sort: SortInput
+        limit: Int = 20
+        cursor: String
+    ): PostsConnection! @auth
+    get_post(post_id: String!): Post @auth
+    get_feed_posts(limit: Int = 20, cursor: String): PostsConnection! @auth
+    get_comments(
+        filter: CommentFilterInput!
+        sort: SortInput
+        limit: Int = 20
+        cursor: String
+    ): CommentsConnection! @auth
+    get_comment(comment_id: String!): Comment @auth
+    get_trending_posts(
+        time_window: Int = 24
+        limit: Int = 20
+        cursor: String
+    ): PostsConnection! @auth
+}
+
+extend type Mutation {
+    create_post(input: CreatePostInput!): Post! @auth
+    update_post(input: UpdatePostInput!): Post! @auth
+    delete_post(post_id: String!): Boolean! @auth
+    create_comment(input: CreateCommentInput!): Comment! @auth
+    update_comment(input: UpdateCommentInput!): Comment! @auth
+    delete_comment(comment_id: String!): Boolean! @auth
+    toggle_post_like(post_id: String!): Post! @auth
+    toggle_comment_like(comment_id: String!): Comment! @auth
+    increment_post_view(post_id: String!): Post! @auth
+}
+
+# For future use
+# type Subscription {
+#     post_created: Post! @auth
+#     comment_created(post_id: String!): Comment! @auth
+#     post_likes_updated(post_id: String!): Post! @auth
+# }

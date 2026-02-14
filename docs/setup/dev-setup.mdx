@@ -1,0 +1,371 @@
+---
+title: Developer Setup
+description: Get your local environment ready to build, run, test, and debug Blindly across backend, database, and mobile app.
+icon: "toolbox"
+---
+
+import { Tabs, Tab, Steps, Callout, Card, CardGroup } from 'nextra/components'
+
+<img
+  className="block dark:hidden w-56"
+  src="/images/main-trans.png"
+  alt="Blindly Logo Light"
+/>
+<img
+  className="hidden dark:block w-56"
+  src="/images/main-trans.png"
+  alt="Blindly Logo Dark"
+/>
+
+## Overview
+
+This guide helps you:
+- Set up the backend (Go + Fiber + GraphQL)
+- Prepare PostgreSQL & Redis locally
+- Run database migrations (Drizzle)
+- Develop the React Native app (Expo)
+- Test, debug, and iterate quickly
+
+<CardGroup cols={3}>
+  <Card title="Architecture" icon="cubes" href="/docs/setup/architecture">
+    Understand how backend, frontend, and database work together.
+  </Card>
+  <Card title="Self-host" icon="rocket" href="/docs/setup/self-host">
+    Run locally with Docker Compose or deploy on Kubernetes.
+  </Card>
+  <Card title="Contribute" icon="handshake" href="/docs/setup/contributing">
+    Follow guidelines to open PRs and build features confidently.
+  </Card>
+</CardGroup>
+
+---
+
+## Prerequisites
+
+Ensure you have the following tools installed:
+
+- Git (latest)
+- Go toolchain (matches `services/go.mod` toolchain)
+- Node.js 18+ or 20+ (for tooling and Drizzle CLI)
+- Package manager: `bun` or `npm`/`yarn` (repo includes `bun.lock`)
+- Docker & Docker Compose (recommended for local DB)
+- PostgreSQL 16+ (optional if not using Docker)
+- Redis 7+ (optional if not using Docker)
+- Expo CLI & Expo Go app (for mobile development)
+- A `.env` file for backend runtime secrets
+
+<Callout type="warning" emoji="🔐">
+  The backend requires `DATABASE_URL` and `REDIS_URL` to run. In the Docker Compose setup, these are set automatically. When running outside Docker, you must set them yourself.
+</Callout>
+
+---
+
+## Clone the repo
+
+<Steps>
+  <li>
+    Clone the repository and enter the project root:
+    ```bash
+    git clone https://github.com/MelloB1989/blindly.git
+    cd blindly
+    ```
+  </li>
+  <li>
+    Review the project layout:
+    - `services/` — Go backend
+    - `db/` — Drizzle schema and migrations
+    - `docs/` — Documentation site
+    - `expo/` — React Native app (Expo)
+  </li>
+</Steps>
+
+---
+
+## Environment configuration
+
+Create a `.env` in the project root (`blindly/.env`) for runtime secrets used by the backend. Examples:
+
+```bash
+# Database & Cache
+DATABASE_URL=postgres://blindly:blindly_password@localhost:5432/blindly?sslmode=disable
+REDIS_URL=redis://localhost:6379
+
+# App configuration
+ENVIRONMENT=DEV
+JWT_SECRET=replace_me
+```
+
+<Callout type="info" emoji="📝">
+  In Docker Compose, `DATABASE_URL` and `REDIS_URL` are set in the backend service. Other env vars still need to be provided via `.env`.
+</Callout>
+
+---
+
+## Bring up local infrastructure
+
+The fastest way to get Postgres + Redis + migrations + backend is Docker Compose.
+
+<Steps>
+  <li>
+    From the root (`blindly/`), run:
+    ```bash
+    docker compose up --build
+    ```
+    Or detached:
+    ```bash
+    docker compose up --build -d
+    ```
+  </li>
+  <li>
+    Verify services:
+    ```bash
+    docker compose ps
+    curl http://localhost:9000/health
+    ```
+  </li>
+  <li>
+    If you need to reset local data:
+    ```bash
+    docker compose down -v
+    docker compose up --build
+    ```
+  </li>
+</Steps>
+
+<Callout type="success" emoji="🗂️">
+  The `migrate` job automatically applies Drizzle migrations from `db/drizzle/` before the backend starts.
+</Callout>
+
+---
+
+## Database migrations (manual run)
+
+If you prefer to run migrations manually (without Docker):
+
+<Tabs>
+  <Tab title="Using local Postgres">
+    <Steps>
+      <li>
+        Ensure Postgres is running and reachable at the connection in your `.env`.
+      </li>
+      <li>
+        Install Drizzle CLI tooling in the `db/` directory:
+        ```bash
+        cd db
+        npm install drizzle-kit drizzle-orm pg
+        ```
+      </li>
+      <li>
+        Set required env for `drizzle.config.ts`:
+        ```bash
+        export DB_HOST=localhost
+        export DB_USER=blindly
+        export DB_PASSWORD=blindly_password
+        export DB_NAME=blindly
+        export DB_PORT=5432
+        export DB_SSL=false
+        ```
+      </li>
+      <li>
+        Run migrations:
+        ```bash
+        npx drizzle-kit migrate
+        ```
+      </li>
+    </Steps>
+  </Tab>
+  <Tab title="Using Docker Postgres">
+    Export the same `DB_*` envs but point `DB_HOST=localhost` (mapped by Docker). Ensure `5432:5432` is exposed.
+  </Tab>
+</Tabs>
+
+---
+
+## Run the backend (Go)
+
+<Steps>
+  <li>
+    Enter the backend service directory:
+    ```bash
+    cd services
+    ```
+  </li>
+  <li>
+    Ensure `DATABASE_URL` and `REDIS_URL` are set in your environment or `.env`.
+  </li>
+  <li>
+    Install dependencies and build:
+    ```bash
+    go mod download
+    go build -o blindly .
+    ```
+  </li>
+  <li>
+    Run the server:
+    ```bash
+    ./blindly
+    ```
+    The server should listen on port `9000`.
+  </li>
+  <li>
+    Verify health:
+    ```bash
+    curl http://localhost:9000/health
+    ```
+  </li>
+</Steps>
+
+<Callout type="info" emoji="🧩">
+  The backend serves GraphQL for most functionality and HTTP endpoints for health checks, webhooks, and specialized flows.
+</Callout>
+
+---
+
+## Frontend (React Native / Expo)
+
+<Steps>
+  <li>
+    Install dependencies:
+    ```bash
+    cd expo
+    bun install # or npm install / yarn install
+    ```
+  </li>
+  <li>
+    Configure the app to point to your backend host and GraphQL endpoint (e.g., `http://localhost:9000/graphql` for local dev). Use your app config or environment strategy to switch between dev and prod.
+  </li>
+  <li>
+    Start the app:
+    ```bash
+    bun run dev # or expo start
+    ```
+  </li>
+  <li>
+    Open on device:
+    - Install Expo Go on iOS/Android
+    - Scan the QR to load the app
+  </li>
+</Steps>
+
+<Tabs>
+  <Tab title="EAS Build">
+    For production builds:
+    ```bash
+    eas build -p android
+    eas build -p ios
+    ```
+    To distribute quickly in testing, use EAS update and QR (works on iOS & Android).
+  </Tab>
+  <Tab title="APK (Android)">
+    - Build an APK and install on device/emulator
+    - Or download the latest APK from releases
+  </Tab>
+</Tabs>
+
+---
+
+## Testing
+
+- Backend unit tests:
+  ```bash
+  cd services
+  go test ./...
+  ```
+- API smoke tests:
+  - Hit `/health`
+  - Exercise common GraphQL queries/mutations
+- Mobile:
+  - Run on device and verify common flows (onboarding, match, chat, reveal)
+
+<Callout type="info" emoji="🧪">
+  Consider adding integration tests for GraphQL resolvers and DB interactions. Use a test database and deterministic seeds.
+</Callout>
+
+---
+
+## Debugging
+
+- Add structured logs with context (request IDs, user IDs)
+- Use verbose logging in dev (`ENVIRONMENT=DEV`)
+- Inspect Postgres with a client (e.g., `psql` or TablePlus)
+- Monitor Redis keys for sessions and rate-limits
+- Use network proxy tools (e.g., `mitmproxy`) to inspect mobile requests
+
+<Callout type="warning" emoji="🐞">
+  If the backend doesn’t start, confirm `DATABASE_URL` and `REDIS_URL` are set and reachable. Also verify migrations have been applied.
+</Callout>
+
+---
+
+## Linting & Formatting
+
+- Go formatting:
+  ```bash
+  cd services
+  go fmt ./...
+  ```
+- JS/TS formatting (docs/expo/db tooling):
+  ```bash
+  bun run fmt # or npm run fmt / yarn fmt
+  ```
+- Recommended: enable pre-commit hooks for formatting and basic checks.
+
+---
+
+## Common Issues
+
+<Tabs>
+  <Tab title="DB connection refused">
+    - Ensure Postgres is running and reachable at the host/port
+    - Check credentials and database name
+    - If using Docker, confirm port mappings and container health
+  </Tab>
+  <Tab title="Migrations fail">
+    - Verify `DB_*` envs required by `drizzle.config.ts`
+    - Ensure your network can reach Postgres
+    - Review SQL in `db/drizzle/*.sql` for conflicts
+  </Tab>
+  <Tab title="Mobile cannot reach backend">
+    - On devices, `localhost` refers to the device, not your machine
+    - Use your machine’s LAN IP (e.g., `http://192.168.x.x:9000`)
+    - If using Android emulator, `http://10.0.2.2:9000` maps to host
+  </Tab>
+</Tabs>
+
+---
+
+## Development Workflow
+
+<Steps>
+  <li>
+    Create a feature branch:
+    ```bash
+    git checkout -b feat/your-feature
+    ```
+  </li>
+  <li>
+    Implement backend changes with tests, run `go test ./...`.
+  </li>
+  <li>
+    Update GraphQL schema/resolvers and mobile consumers.
+  </li>
+  <li>
+    Run local stack via Docker Compose and validate end-to-end.
+  </li>
+  <li>
+    Format, lint, and open a PR following contribution guidelines.
+  </li>
+</Steps>
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Self-host Blindly" icon="rocket" href="/docs/setup/self-host">
+    Deploy locally or in Kubernetes and share with your team.
+  </Card>
+  <Card title="Contribution Guidelines" icon="handshake" href="/docs/setup/contributing">
+    Learn how to propose changes, write tests, and land PRs smoothly.
+  </Card>
+</CardGroup>

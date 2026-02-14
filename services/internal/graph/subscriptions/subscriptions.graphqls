@@ -1,0 +1,110 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Subscriptions Schema
+# This file defines the GraphQL schema for subscription plans and user subscriptions.
+
+type SubscriptionFeatures {
+    see_who_liked: Boolean!
+    priority_matching: Boolean!
+    profile_boost: Boolean!
+    advanced_filters: Boolean!
+    verified_priority: Boolean!
+    unlimited_rewinds: Boolean!
+    read_receipts: Boolean!
+    incognito_mode: Boolean!
+}
+
+type SubscriptionLimits {
+    swipes_per_day: Int!      # -1 for unlimited
+    ai_replies_per_day: Int!  # -1 for unlimited
+    superlikes_per_day: Int!
+    boosts_per_month: Int!
+}
+
+type SubscriptionPlan {
+    id: String!
+    name: String!
+    description: String!
+    price_monthly: Int!  # cents
+    price_yearly: Int!   # cents
+    features: SubscriptionFeatures!
+    limits: SubscriptionLimits!
+    is_active: Boolean!
+    sort_order: Int!
+}
+
+type UserSubscription {
+    id: String!
+    user_id: String!
+    plan_id: String!
+    plan: SubscriptionPlan
+    status: String!  # "active", "cancelled", "expired", "paused"
+    provider: String!  # "dodo", "revcat", "manual"
+    current_period_start: Time!
+    current_period_end: Time!
+    cancel_at_period_end: Boolean!
+    created_at: Time!
+}
+
+type UserSubscriptionStatus {
+    plan_id: String!
+    plan: SubscriptionPlan!
+    is_subscribed: Boolean!
+    subscription: UserSubscription
+    limits: SubscriptionLimits!
+    features: SubscriptionFeatures!
+    # Current usage
+    swipes_remaining: Int!  # -1 for unlimited
+    ai_replies_remaining: Int!  # -1 for unlimited
+}
+
+type CheckoutSession {
+    checkout_url: String!
+    session_id: String!
+    provider: String!
+}
+
+# ---------- Queries ----------
+
+extend type Query {
+    """
+    Get all available subscription plans.
+    """
+    subscriptionPlans: [SubscriptionPlan!]!
+
+    """
+    Get the current user's subscription status.
+    """
+    mySubscription: UserSubscriptionStatus! @auth
+
+    """
+    Check if user can perform a specific action (respects limits).
+    """
+    canPerformAction(action: String!): Boolean! @auth
+}
+
+# ---------- Mutations ----------
+
+extend type Mutation {
+    """
+    Create a checkout session for a subscription plan.
+    Returns a URL to redirect the user to complete payment.
+    """
+    createCheckoutSession(plan_id: String!, billing_period: String!): CheckoutSession! @auth
+
+    """
+    Cancel the current subscription at period end.
+    """
+    cancelSubscription: Boolean! @auth
+
+    """
+    Reactivate a cancelled subscription (before period end).
+    """
+    reactivateSubscription: Boolean! @auth
+
+    """
+    Sync subscription status with provider (RevenueCat/Dodo).
+    Called to refresh subscription state.
+    """
+    syncSubscriptionStatus: UserSubscriptionStatus! @auth
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "extra" json DEFAULT '{}'::json;

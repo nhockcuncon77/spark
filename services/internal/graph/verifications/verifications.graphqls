@@ -1,0 +1,25 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Users Schema
+# This file defines the GraphQL schema for the users service.
+
+type UserVerification {
+    id: String!
+    user_id: String!
+    media: [Media!]!
+    status: String!
+    created_at: Time!
+    updated_at: Time!
+}
+
+input UserVerificationInput {
+    media: [MediaInput!]!
+}
+
+extend type Mutation {
+    createVerification(input: UserVerificationInput!): UserVerification! @auth
+}
+
+extend type Query {
+    getUserVerificationStatus: UserVerification! @auth
+}

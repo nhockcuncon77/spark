@@ -1,0 +1,28 @@
+{
+  "name": "spark",
+  "version": "0.6.10",
+  "scripts": {
+    "release:patch": "node ./scripts/release.js patch",
+    "release:minor": "node ./scripts/release.js minor",
+    "release:major": "node ./scripts/release.js major",
+    "sync:expo": "node ./scripts/sync_expo_appjson.js",
+    "db:generate": "cd db && npx drizzle-kit generate",
+    "db:migrate": "cd db && npx drizzle-kit migrate",
+    "db:browser": "cd db && npx drizzle-kit studio",
+    "gqlgen": "cd services && (go run github.com/99designs/gqlgen@v0.17.84 generate || true) && go run ./tools/add_import.go",
+    "start:backend": "cd services && go run -ldflags \"-X main.Version=$(git describe --tags --always --dirty)\" main.go",
+    "start:app": "npm run sync:expo && cd expo && bunx expo start --clear",
+    "build:backend": "cd services && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags \"-X main.Version=$(git describe --tags --always --dirty)\" -o spark",
+    "build:docker": "docker build --build-arg VERSION=$(git describe --tags --always --dirty) -f services/Dockerfile -t registry.prod.lyzn.in/spark:latest .",
+    "deploy:docker": "docker push registry.prod.lyzn.in/spark:latest && kubectl apply -f deployment.yaml && kubectl rollout restart deployment spark"
+  },
+  "dependencies": {
+    "turbo": "^2.6.1",
+    "@neondatabase/serverless": "^0.9.4",
+    "drizzle-orm": "^0.32.1",
+    "postgres": "^3.4.4"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.23.0"
+  }
+}

@@ -1,0 +1,236 @@
+---
+title: Contribution Guidelines
+description: How to propose changes, write tests, and land high-quality PRs for Blindly.
+icon: "handshake"
+---
+
+import { Steps, Callout, Card, CardGroup } from 'nextra/components'
+
+## Welcome
+
+Thanks for your interest in contributing to Blindly! This guide explains how to file issues, propose changes, write tests, and open pull requests (PRs) that can be reviewed and merged smoothly.
+
+Blindly’s stack includes:
+- Backend: Go + Fiber, GraphQL-first (selected REST endpoints for specialized flows)
+- Mobile: React Native (Expo)
+- Data: PostgreSQL with Drizzle-managed schema/migrations, Redis for cache/ephemeral state
+- Ops: Docker Compose for local dev, Kubernetes for production
+
+---
+
+## Core Principles
+
+- Quality over speed: optimize for reliability, readability, and test coverage.
+- Small, focused changes: keep PRs scoped and easy to review.
+- Documentation matters: update docs for new APIs, environment variables, and user flows.
+- Security and privacy first: protect user data, avoid leaking secrets, follow best practices.
+- Transparent AI: keep AI features labeled, opt-in, and documented.
+
+---
+
+## What Can I Work On?
+
+<CardGroup cols={3}>
+  <Card title="Bug fixes" icon="bug" href="#reporting-issues">
+    Reproducible issues with clear steps, logs, and a minimal patch.
+  </Card>
+  <Card title="Features" icon="sparkles" href="#proposing-changes">
+    Discuss scope and UX beforehand, ship behind flags if risky.
+  </Card>
+  <Card title="Docs & DX" icon="book-open-cover" href="#documentation">
+    Improve guides, examples, tooling, and developer ergonomics.
+  </Card>
+</CardGroup>
+
+---
+
+## Reporting Issues
+id: reporting-issues
+
+<Steps>
+  <li>
+    Search existing issues to avoid duplicates.
+  </li>
+  <li>
+    Provide a minimal reproduction:
+    - Steps to trigger
+    - Expected vs. actual behavior
+    - Logs, stack traces, or screenshots
+    - Environment details (OS, tool versions, device)
+  </li>
+  <li>
+    If the issue is security-sensitive, see the Security section below.
+  </li>
+</Steps>
+
+Use clear titles and labels (e.g., `bug`, `enhancement`, `docs`, `security`).
+
+---
+
+## Proposing Changes
+id: proposing-changes
+
+Before writing code for larger features or architectural changes, open a short design discussion:
+
+- Problem statement and goals
+- Proposed approach (backend endpoints, GraphQL schema changes, client UX)
+- Data model impact (Postgres tables, migrations)
+- Backward compatibility and migration strategy
+- Risks and alternatives
+
+This helps align expectations and avoid rework.
+
+---
+
+## Development Workflow
+
+<Steps>
+  <li>
+    Fork and clone the repo.
+  </li>
+  <li>
+    Create a feature branch:
+    ```bash
+    git checkout -b feat/short-description
+    # or
+    git checkout -b fix/short-description
+    ```
+  </li>
+  <li>
+    Set up local stack:
+    - Use Docker Compose to bring up Postgres, Redis, migrations, and backend.
+    - Configure the Expo app to target your local backend.
+  </li>
+  <li>
+    Write code with tests (unit/integration) and update docs.
+  </li>
+  <li>
+    Run formatters and linters, confirm `go test ./...` passes.
+  </li>
+  <li>
+    Push your branch and open a PR following the checklist below.
+  </li>
+</Steps>
+
+---
+
+## Code Style & Standards
+
+- Go:
+  - Follow idiomatic Go; prefer clarity over cleverness.
+  - Use `go fmt` and ensure `go vet` warnings are addressed.
+  - Add descriptive log messages with structured fields (request IDs, user IDs).
+- GraphQL:
+  - Changes should maintain a consistent schema design (naming, nullability, pagination).
+  - Document new queries/mutations and error states.
+- TypeScript/JS (Expo, tooling):
+  - Keep types strict, avoid implicit `any`.
+  - Prefer functional components and hooks.
+  - Keep API calls centralized and typed.
+- SQL/Migrations (Drizzle):
+  - Only additive changes unless a deprecation/migration plan is documented.
+  - Migrations must be reproducible and idempotent where possible.
+
+---
+
+## Testing
+
+Aim for testable business logic and guards:
+
+- Backend:
+  - Unit tests for pure logic (matching, scoring, validation).
+  - Integration tests for GraphQL resolvers and DB interactions (use test DB).
+- Mobile:
+  - Component tests for UI logic.
+  - E2E smoke tests for core flows (onboarding, chat, reveal).
+- Ops:
+  - Health checks and migration success paths validated.
+
+Run:
+```bash
+# Go backend
+cd services
+go test ./...
+
+# Expo (example, adapt to your setup)
+cd ../expo
+# add your preferred test runner scripts
+```
+
+---
+
+## Documentation
+id: documentation
+
+Update relevant docs when you change behavior or interfaces:
+
+- API schema changes (GraphQL docs, examples)
+- Env vars and configuration
+- Dev setup and self-hosting steps
+- User-facing docs (intro/about, privacy/terms links where applicable)
+
+Keep docs concise, scannable, and actionable.
+
+---
+
+## Pull Request Checklist
+
+- Problem and solution clearly described
+- Small, focused changes; split PRs if scope is large
+- Tests added/updated; CI passes
+- Docs updated (including `docs.json` navigation when adding new pages)
+- No secrets or sensitive data committed
+- Manual verification steps included (how reviewers can validate)
+- Screenshots for UI changes (mobile)
+
+PR title format:
+- `feat(scope): short summary`
+- `fix(scope): short summary`
+- `docs(scope): short summary`
+- `refactor(scope): short summary`
+
+---
+
+## Security
+
+If you discover a vulnerability, do not open a public issue. Instead:
+
+- Contact the maintainers privately via the email listed in the repository or docs.
+- Provide steps to reproduce, impact assessment, and any suggested fixes.
+- We’ll acknowledge receipt, investigate, and coordinate a responsible disclosure.
+
+General security practices:
+- Never commit secrets or private keys.
+- Use parameterized queries and validate inputs.
+- Sanitize user-generated content.
+- Respect privacy and minimize data exposure in logs.
+
+---
+
+## Performance & Observability
+
+- Profile hot paths; avoid N+1 queries and heavy synchronous work on request paths.
+- Cache appropriately (Redis) with safe eviction strategies.
+- Add metrics for latency, error rates, cache hit ratio, DB timings.
+- Use structured logs and trace spans around critical operations.
+
+---
+
+## Licensing & Attribution
+
+By contributing, you agree that your contributions are licensed under the project’s license. Please ensure you own the rights to the code you submit and include attribution when porting or adapting external snippets.
+
+---
+
+## Getting Help
+
+<CardGroup cols={2}>
+  <Card title="Dev Setup" icon="toolbox" href="/docs/setup/dev-setup">
+    Prepare your local environment and run tests.
+  </Card>
+  <Card title="Self-host" icon="rocket" href="/docs/setup/self-host">
+    Deploy via Docker Compose or Kubernetes.
+  </Card>
+</CardGroup>
+
+For questions, open a discussion or reach out via the contact listed in the navbar. We’re excited to collaborate!

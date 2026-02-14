@@ -1,0 +1,64 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Swipes Schema
+# This file defines the GraphQL schema for the swipe engine.
+
+enum SwipeType {
+    LIKE
+    SUPERLIKE
+    DISLIKE
+}
+
+type Swipe {
+    id: ID!
+    user_id: String!
+    target_id: String!
+    action_type: SwipeType!
+    created_at: Time!
+}
+
+type SwipedProfile {
+    profile: UserPublic!
+    swipe: Swipe!
+}
+
+type SwipeResponse {
+    swipe: Swipe!
+    match: Match
+}
+
+type RecommendedProfile {
+    profile: UserPublic!
+    match_score: Float! # 0–100: ML similarity score
+    compatibility_score: Float! # personality-based matching
+    common_interests: [String!]! # overlapping interests
+    distance_km: Float # optional if location enabled
+    reason: String # reason why algorithm suggested them, added for future use
+}
+
+type RecommendationsResult {
+    items: [RecommendedProfile!]!
+    next_cursor: String # pass this cursor to fetch more
+    has_more: Boolean!
+    fetched_at: Time! # timestamp for consistency/debug
+}
+
+# Filter input for recommendations
+input RecommendationFilter {
+    gender: String            # Target gender: "male", "female", "other" (defaults to opposite of user)
+    min_age: Int              # Minimum age (calculated from dob)
+    max_age: Int              # Maximum age
+    max_distance_km: Float    # Maximum distance in km (requires location)
+    verified_only: Boolean    # Only show verified profiles
+}
+
+extend type Query {
+    recommendations(cursor: String, limit: Int = 20, filter: RecommendationFilter): RecommendationsResult!
+        @auth
+    mySwipes: [SwipedProfile!]! @auth
+}
+
+extend type Mutation {
+    swipe(target_id: String!, action_type: SwipeType!): SwipeResponse! @auth
+}
+

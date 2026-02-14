@@ -1,0 +1,21 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Blocked Users Schema
+# This file defines the GraphQL schema for user blocking functionality.
+
+type BlockedUser {
+    id: String!
+    user_id: String!
+    blocked_user_id: String!
+    created_at: Time!
+}
+
+extend type Query {
+    blockedUsers: [UserPublic!]! @auth
+    isUserBlocked(userId: String!): Boolean! @auth
+}
+
+extend type Mutation {
+    blockUser(userId: String!): Boolean! @auth
+    unblockUser(userId: String!): Boolean! @auth
+}

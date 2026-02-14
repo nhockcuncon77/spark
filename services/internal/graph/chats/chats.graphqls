@@ -1,0 +1,38 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Chats Schema
+# This file defines the GraphQL schema for the chats of matched users.
+
+type Chat {
+    id: String!
+    match_id: String!
+    created_at: Time!
+}
+
+type PostUnlockRating {
+    she_rating: Int!
+    he_rating: Int!
+}
+
+type Match {
+    id: String!
+    she_id: String!
+    he_id: String!
+    score: Int!
+    post_unlock_rating: PostUnlockRating!
+    is_unlocked: Boolean!
+    matched_at: Time!
+}
+
+type Connection {
+    chat: Chat!
+    match: Match!
+    last_message: String!
+    unread_messages: Int!
+    percentage_complete: Float!
+    connection_profile: UserPublic!
+}
+
+extend type Query {
+    getMyConnections: [Connection]! @auth
+}

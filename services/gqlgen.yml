@@ -1,0 +1,108 @@
+schema:
+  - internal/graph/**/*.graphqls
+exec:
+  package: graph
+  layout: single-file
+
+  filename: internal/graph/generated.go
+
+model:
+  filename: internal/graph/model/models_gen.go
+  package: model
+
+resolver:
+  package: graph
+  layout: follow-schema
+
+  dir: internal/graph
+  filename_template: "{name}.resolvers.go"
+
+call_argument_directives_with_null: true
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  UUID:
+    model:
+      - github.com/99designs/gqlgen/graphql.UUID
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+  Float:
+    model:
+      - github.com/99designs/gqlgen/graphql.Float
+  Float64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Float64
+
+  # User models
+  User:
+    model: spark/internal/models.User
+  Address:
+    model: spark/internal/models.Address
+  ExtraMetadata:
+    model: spark/internal/models.ExtraMetadata
+
+  # Match models
+  Match:
+    model: spark/internal/models.Match
+  PostUnlockRating:
+    model: spark/internal/models.PostUnlockRating
+  Chat:
+    model: spark/internal/models.Chat
+  ActivityType:
+    model: spark/internal/models.ActivityType
+  UserProfileActivity:
+    model: spark/internal/models.UserProfileActivity
+
+  # Swipe models
+  Swipe:
+    model: spark/internal/models.Swipe
+  SwipeType:
+    model: spark/internal/models.SwipeType
+
+  # Community models
+  Media:
+    model: spark/internal/models.Media
+  Post:
+    model: spark/internal/models.Post
+  Comment:
+    model: spark/internal/models.Comment
+
+  # Report models
+  Report:
+    model: spark/internal/models.Report
+
+  # Verification models
+  UserVerification:
+    model: spark/internal/models.UserVerification
+
+  # Subscription models
+  SubscriptionPlan:
+    model: spark/internal/models.SubscriptionPlan
+  SubscriptionFeatures:
+    model: spark/internal/models.SubscriptionFeatures
+  SubscriptionLimits:
+    model: spark/internal/models.SubscriptionLimits
+  UserSubscription:
+    model: spark/internal/models.UserSubscription
+
+  # Push notification models
+  UserPushToken:
+    model: spark/internal/models.UserPushToken
+
+  # Streak models
+  MatchStreak:
+    model: spark/internal/models.MatchStreak
+
+directives:
+  auth:
+    implementation: "directives.AuthDirective"

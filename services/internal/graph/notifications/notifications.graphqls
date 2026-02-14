@@ -1,0 +1,30 @@
+# Blindly Copyright (c) 2025 MelloB
+#
+# Notifications Schema
+# This file defines the GraphQL schema for push notifications.
+
+type PushNotificationResult {
+    success: Boolean!
+    message: String
+}
+
+# ---------- Inputs ----------
+
+input RegisterPushTokenInput {
+    token: String!
+    platform: String! # "ios", "android", "web"
+    device_id: String
+}
+
+extend type Mutation {
+    """
+    Register a push notification token for the current user.
+    Called on app launch to ensure notifications can be delivered.
+    """
+    registerPushToken(input: RegisterPushTokenInput!): PushNotificationResult! @auth
+
+    """
+    Remove/deactivate a push token (e.g., on logout).
+    """
+    removePushToken(token: String!): PushNotificationResult! @auth
+}
