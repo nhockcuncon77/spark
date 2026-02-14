@@ -19,18 +19,16 @@ export const Hero = () => {
       </div>
 
       <div className="container relative z-10 flex flex-col items-center text-center px-4">
-        {/* Logo */}
+        {/* Logo - Spark on the left */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="mb-8"
         >
-          <img
-            src="/logo.png"
-            alt="Spark Logo"
-            className="h-16 md:h-20 w-auto opacity-90 drop-shadow-[0_0_15px_rgba(124,58,237,0.5)]"
-          />
+          <span className="text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-[0_0_15px_rgba(124,58,237,0.5)]">
+            Spark<span className="text-brand-purple">.</span>
+          </span>
         </motion.div>
 
         {/* Badge */}
