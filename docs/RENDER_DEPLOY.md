@@ -71,6 +71,8 @@ Optional (for full features):
 | **Build Command** | `npm install && npm run build` |
 | **Publish Directory** | `dist` |
 
+**Important:** Set **Build Command** to exactly `npm install && npm run build` and nothing else. Clear any default (e.g. “bun install”) so Render does not merge it; otherwise you may get `npm run buildbun` and the build will fail.
+
 ### Environment variables (optional)
 
 If the landing page calls your API, add:

@@ -1,0 +1,9 @@
+# Render Blueprint – reference for Build Command / Publish Directory.
+# Landing (static site): Root Directory = landing, Build Command = below, Publish = dist
+services:
+  - type: web
+    name: spark-landing
+    runtime: static
+    rootDir: landing
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
