@@ -23,8 +23,14 @@ The Expo mobile app is not deployed to Render; you build and publish it via EAS/
 | **Region** | Oregon (US West) or your choice |
 | **Root Directory** | `services` |
 | **Language** | Go |
-| **Build Command** | `go build -ldflags="-w -s -X main.Version=$RENDER_GIT_COMMIT" -o spark .` |
+| **Build Command** | See below — use exactly one command and replace any default. |
 | **Start Command** | `./spark` |
+
+**Build Command (use this only, replace Render’s default):**
+```bash
+go build -ldflags '-w -s -X main.Version=$RENDER_GIT_COMMIT' -o spark .
+```
+If that fails, use the simpler: `go build -o spark .`
 
 ### Environment variables (required)
 

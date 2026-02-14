@@ -1,6 +1,7 @@
 package streaks
 
 import (
+	"spark/internal/helpers/ormcompat"
 	"spark/internal/helpers/pushnotify"
 	"spark/internal/helpers/users"
 	"spark/internal/models"
@@ -8,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/MelloB1989/karma/config"
 	"github.com/MelloB1989/karma/orm"
 	"github.com/MelloB1989/karma/utils"
 )
@@ -45,16 +45,9 @@ func GetMilestoneInfo(streak int) []MilestoneInfo {
 
 // GetOrCreateStreak gets an existing streak or creates a new one for a match
 func GetOrCreateStreak(matchID string) (*models.MatchStreak, error) {
-	streakORM := orm.Load(&models.MatchStreak{},
-		orm.WithCacheKey(fmt.Sprintf("match_streak:%s", matchID)),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(5*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer streakORM.Close()
-
-	var streaks []models.MatchStreak
-	if err := streakORM.GetByFieldEquals("MatchId", matchID).Scan(&streaks); err != nil {
+	streakORM := orm.Load(&models.MatchStreak{})
+	streaks, err := ormcompat.GetByFieldEqualsSlice[models.MatchStreak](streakORM, "MatchId", matchID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -187,7 +180,6 @@ func UpdateStreakOnMessage(matchID string, senderID string, isShe bool) (int, bo
 
 	// Save streak
 	streakORM := orm.Load(&models.MatchStreak{})
-	defer streakORM.Close()
 	if err := streakORM.Update(streak, streak.Id); err != nil {
 		return streak.CurrentStreak, false, err
 	}
@@ -211,10 +203,8 @@ func SendMilestoneNotifications(matchID string, streak int) {
 	go func() {
 		// Get match to find both users
 		matchORM := orm.Load(&models.Match{})
-		defer matchORM.Close()
-
-		var matches []models.Match
-		if err := matchORM.GetByFieldEquals("Id", matchID).Scan(&matches); err != nil || len(matches) == 0 {
+		matches, err := ormcompat.GetByFieldEqualsSlice[models.Match](matchORM, "Id", matchID)
+		if err != nil || len(matches) == 0 {
 			log.Printf("[Streak] Failed to get match for milestone notification: %v", err)
 			return
 		}
@@ -244,21 +234,11 @@ func SendMilestoneNotifications(matchID string, streak int) {
 func GetUserStreaks(userID string) ([]models.MatchStreak, error) {
 	// First get all user's matches
 	matchORM := orm.Load(&models.Match{})
-	defer matchORM.Close()
-
 	var allMatches []models.Match
-
-	// Get matches where user is she
-	var sheMatches []models.Match
-	if err := matchORM.GetByFieldEquals("SheId", userID).Scan(&sheMatches); err == nil {
-		allMatches = append(allMatches, sheMatches...)
-	}
-
-	// Get matches where user is he
-	var heMatches []models.Match
-	if err := matchORM.GetByFieldEquals("HeId", userID).Scan(&heMatches); err == nil {
-		allMatches = append(allMatches, heMatches...)
-	}
+	sheMatches, _ := ormcompat.GetByFieldEqualsSlice[models.Match](matchORM, "SheId", userID)
+	allMatches = append(allMatches, sheMatches...)
+	heMatches, _ := ormcompat.GetByFieldEqualsSlice[models.Match](matchORM, "HeId", userID)
+	allMatches = append(allMatches, heMatches...)
 
 	if len(allMatches) == 0 {
 		return []models.MatchStreak{}, nil

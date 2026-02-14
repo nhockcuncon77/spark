@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/MelloB1989/karma/config"
 	"github.com/MelloB1989/karma/orm"
 	"github.com/MelloB1989/karma/utils"
+	"spark/internal/helpers/ormcompat"
 )
 
 // Plan IDs
@@ -93,34 +93,19 @@ var PlanFeatures = map[string]models.SubscriptionFeatures{
 
 // GetAllPlans returns all available subscription plans
 func GetAllPlans() ([]models.SubscriptionPlan, error) {
-	planORM := orm.Load(&models.SubscriptionPlan{},
-		orm.WithCacheKey("subscription_plans:all"),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(10*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer planORM.Close()
-
-	var plans []models.SubscriptionPlan
-	if err := planORM.GetByFieldEquals("IsActive", true).Scan(&plans); err != nil {
+	planORM := orm.Load(&models.SubscriptionPlan{})
+	plans, err := ormcompat.GetByFieldEqualsSlice[models.SubscriptionPlan](planORM, "IsActive", true)
+	if err != nil {
 		return nil, err
 	}
-
 	return plans, nil
 }
 
 // GetPlan returns a subscription plan by ID
 func GetPlan(planID string) (*models.SubscriptionPlan, error) {
-	planORM := orm.Load(&models.SubscriptionPlan{},
-		orm.WithCacheKey(fmt.Sprintf("subscription_plan:%s", planID)),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(10*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer planORM.Close()
-
-	var plans []models.SubscriptionPlan
-	if err := planORM.GetByFieldEquals("Id", planID).Scan(&plans); err != nil {
+	planORM := orm.Load(&models.SubscriptionPlan{})
+	plans, err := ormcompat.GetByFieldEqualsSlice[models.SubscriptionPlan](planORM, "Id", planID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -139,16 +124,9 @@ func GetPlan(planID string) (*models.SubscriptionPlan, error) {
 
 // GetUserSubscription returns the active subscription for a user
 func GetUserSubscription(userID string) (*models.UserSubscription, error) {
-	subORM := orm.Load(&models.UserSubscription{},
-		orm.WithCacheKey(fmt.Sprintf("user_subscription:%s", userID)),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(5*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer subORM.Close()
-
-	var subs []models.UserSubscription
-	if err := subORM.GetByFieldEquals("UserId", userID).Scan(&subs); err != nil {
+	subORM := orm.Load(&models.UserSubscription{})
+	subs, err := ormcompat.GetByFieldEqualsSlice[models.UserSubscription](subORM, "UserId", userID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -224,10 +202,8 @@ func CanSwipe(userID string) (bool, int, error) {
 
 	// Get user's current swipe count
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var users []models.User
-	if err := userORM.GetByFieldEquals("Id", userID).Scan(&users); err != nil {
+	users, err := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", userID)
+	if err != nil {
 		return false, 0, err
 	}
 
@@ -253,10 +229,8 @@ func CanSwipe(userID string) (bool, int, error) {
 // IncrementSwipeCount increments the user's daily swipe count
 func IncrementSwipeCount(userID string) error {
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var users []models.User
-	if err := userORM.GetByFieldEquals("Id", userID).Scan(&users); err != nil {
+	users, err := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", userID)
+	if err != nil {
 		return err
 	}
 
@@ -284,10 +258,8 @@ func CanUseAIReplies(userID string) (bool, int, error) {
 
 	// Get user's current AI usage
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var users []models.User
-	if err := userORM.GetByFieldEquals("Id", userID).Scan(&users); err != nil {
+	users, err := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", userID)
+	if err != nil {
 		return false, 0, err
 	}
 
@@ -313,10 +285,8 @@ func CanUseAIReplies(userID string) (bool, int, error) {
 // IncrementAIUsage increments the user's daily AI usage count
 func IncrementAIUsage(userID string) error {
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var users []models.User
-	if err := userORM.GetByFieldEquals("Id", userID).Scan(&users); err != nil {
+	users, err := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", userID)
+	if err != nil {
 		return err
 	}
 
@@ -334,11 +304,8 @@ func IncrementAIUsage(userID string) error {
 // CreateSubscription creates a new subscription for a user
 func CreateSubscription(userID, planID, provider, providerSubID, providerCustID string, periodStart, periodEnd time.Time) (*models.UserSubscription, error) {
 	subORM := orm.Load(&models.UserSubscription{})
-	defer subORM.Close()
-
-	// Cancel any existing active subscriptions
-	var existing []models.UserSubscription
-	if err := subORM.GetByFieldEquals("UserId", userID).Scan(&existing); err == nil {
+	existing, _ := ormcompat.GetByFieldEqualsSlice[models.UserSubscription](subORM, "UserId", userID)
+	if len(existing) > 0 {
 		for _, sub := range existing {
 			if sub.Status == "active" {
 				sub.Status = "cancelled"
@@ -372,10 +339,8 @@ func CreateSubscription(userID, planID, provider, providerSubID, providerCustID 
 
 	// Update user's plan
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var users []models.User
-	if err := userORM.GetByFieldEquals("Id", userID).Scan(&users); err == nil && len(users) > 0 {
+	users, _ := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", userID)
+	if len(users) > 0 {
 		users[0].SubscriptionPlanId = planID
 		users[0].UpdatedAt = time.Now()
 		userORM.Update(&users[0], users[0].Id)
@@ -396,8 +361,6 @@ func CancelSubscription(userID string) error {
 	}
 
 	subORM := orm.Load(&models.UserSubscription{})
-	defer subORM.Close()
-
 	sub.CancelAtPeriodEnd = true
 	sub.UpdatedAt = time.Now()
 
@@ -415,8 +378,6 @@ func ReactivateSubscription(userID string) error {
 	}
 
 	subORM := orm.Load(&models.UserSubscription{})
-	defer subORM.Close()
-
 	sub.CancelAtPeriodEnd = false
 	sub.UpdatedAt = time.Now()
 
@@ -457,8 +418,6 @@ func ExpireSubscription(subscriptionID string) error {
 // SeedDefaultPlans creates the default subscription plans in the database
 func SeedDefaultPlans() error {
 	planORM := orm.Load(&models.SubscriptionPlan{})
-	defer planORM.Close()
-
 	plans := []models.SubscriptionPlan{
 		{
 			Id:           PlanFree,
@@ -512,8 +471,8 @@ func SeedDefaultPlans() error {
 
 	for _, plan := range plans {
 		// Check if exists
-		var existing []models.SubscriptionPlan
-		if err := planORM.GetByFieldEquals("Id", plan.Id).Scan(&existing); err == nil && len(existing) > 0 {
+		existing, _ := ormcompat.GetByFieldEqualsSlice[models.SubscriptionPlan](planORM, "Id", plan.Id)
+		if len(existing) > 0 {
 			continue // Already exists
 		}
 		if err := planORM.Insert(&plan); err != nil {

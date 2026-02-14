@@ -2,12 +2,12 @@ package ai
 
 import (
 	"spark/internal/helpers/subscriptions"
+	"spark/internal/helpers/ormcompat"
 	"spark/internal/models"
 	"fmt"
 	"log"
 
 	"github.com/MelloB1989/karma/ai"
-	"github.com/MelloB1989/karma/config"
 	"github.com/MelloB1989/karma/orm"
 	"github.com/MelloB1989/karma/utils"
 )
@@ -72,15 +72,9 @@ func GenerateAIReplies(userID, chatID string, contextMessages int, preferredTone
 	}
 
 	// Get the chat messages
-	chatORM := orm.Load(&models.Chat{},
-		orm.WithCacheKey(fmt.Sprintf("chat:%s", chatID)),
-		orm.WithCacheOn(true),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer chatORM.Close()
-
-	var chats []models.Chat
-	if err := chatORM.GetByFieldEquals("Id", chatID).Scan(&chats); err != nil {
+	chatORM := orm.Load(&models.Chat{})
+	chats, err := ormcompat.GetByFieldEqualsSlice[models.Chat](chatORM, "Id", chatID)
+	if err != nil {
 		return nil, fmt.Errorf("failed to get chat: %w", err)
 	}
 

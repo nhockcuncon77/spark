@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/MelloB1989/karma/config"
 	"github.com/MelloB1989/karma/orm"
 	"github.com/MelloB1989/karma/utils"
+	"spark/internal/helpers/ormcompat"
 )
 
 const (
@@ -78,17 +78,9 @@ var DefaultClient = NewClient()
 
 // RegisterToken registers a push token for a user
 func RegisterToken(userID, token, platform, deviceID string) error {
-	tokenORM := orm.Load(&models.UserPushToken{},
-		orm.WithCacheKey(fmt.Sprintf("push_token:%s", userID)),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(5*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer tokenORM.Close()
-
-	// Check if token already exists
-	var existing []models.UserPushToken
-	if err := tokenORM.GetByFieldEquals("Token", token).Scan(&existing); err == nil && len(existing) > 0 {
+	tokenORM := orm.Load(&models.UserPushToken{})
+	existing, _ := ormcompat.GetByFieldEqualsSlice[models.UserPushToken](tokenORM, "Token", token)
+	if len(existing) > 0 {
 		// Token exists, update it
 		existing[0].UserId = userID
 		existing[0].Platform = platform
@@ -116,10 +108,8 @@ func RegisterToken(userID, token, platform, deviceID string) error {
 // RemoveToken deactivates a push token
 func RemoveToken(token string) error {
 	tokenORM := orm.Load(&models.UserPushToken{})
-	defer tokenORM.Close()
-
-	var existing []models.UserPushToken
-	if err := tokenORM.GetByFieldEquals("Token", token).Scan(&existing); err != nil {
+	existing, err := ormcompat.GetByFieldEqualsSlice[models.UserPushToken](tokenORM, "Token", token)
+	if err != nil {
 		return err
 	}
 
@@ -134,16 +124,9 @@ func RemoveToken(token string) error {
 
 // GetUserTokens returns all active tokens for a user
 func GetUserTokens(userID string) ([]string, error) {
-	tokenORM := orm.Load(&models.UserPushToken{},
-		orm.WithCacheKey(fmt.Sprintf("push_tokens:%s", userID)),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(5*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer tokenORM.Close()
-
-	var tokens []models.UserPushToken
-	if err := tokenORM.GetByFieldEquals("UserId", userID).Scan(&tokens); err != nil {
+	tokenORM := orm.Load(&models.UserPushToken{})
+	tokens, err := ormcompat.GetByFieldEqualsSlice[models.UserPushToken](tokenORM, "UserId", userID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -415,10 +398,8 @@ func SendMassNotification(title, body string, segment string) error {
 	// Get all users based on segment
 	// For now, we'll implement "all" segment
 	tokenORM := orm.Load(&models.UserPushToken{})
-	defer tokenORM.Close()
-
-	var tokens []models.UserPushToken
-	if err := tokenORM.GetByFieldEquals("IsActive", true).Scan(&tokens); err != nil {
+	tokens, err := ormcompat.GetByFieldEqualsSlice[models.UserPushToken](tokenORM, "IsActive", true)
+	if err != nil {
 		return err
 	}
 

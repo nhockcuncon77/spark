@@ -8,6 +8,7 @@ package graph
 import (
 	"spark/internal/graph/directives"
 	"spark/internal/graph/model"
+	"spark/internal/helpers/ormcompat"
 	"spark/internal/helpers/pushnotify"
 	"spark/internal/helpers/subscriptions"
 	"spark/internal/helpers/users"
@@ -17,7 +18,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/MelloB1989/karma/config"
 	"github.com/MelloB1989/karma/orm"
 )
 
@@ -47,13 +47,10 @@ func (r *mutationResolver) AdminBanUser(ctx context.Context, userID string, bann
 	}
 
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var foundUsers []models.User
-	if err := userORM.GetByFieldEquals("Id", userID).Scan(&foundUsers); err != nil {
+	foundUsers, err := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", userID)
+	if err != nil {
 		return nil, err
 	}
-
 	if len(foundUsers) == 0 {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -81,13 +78,10 @@ func (r *mutationResolver) AdminChangeRole(ctx context.Context, userID string, r
 	}
 
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var foundUsers []models.User
-	if err := userORM.GetByFieldEquals("Id", userID).Scan(&foundUsers); err != nil {
+	foundUsers, err := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", userID)
+	if err != nil {
 		return nil, err
 	}
-
 	if len(foundUsers) == 0 {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -110,13 +104,10 @@ func (r *mutationResolver) AdminResolveVerification(ctx context.Context, verific
 	}
 
 	verORM := orm.Load(&models.UserVerification{})
-	defer verORM.Close()
-
-	var vers []models.UserVerification
-	if err := verORM.GetByFieldEquals("Id", verificationID).Scan(&vers); err != nil {
+	vers, err := ormcompat.GetByFieldEqualsSlice[models.UserVerification](verORM, "Id", verificationID)
+	if err != nil {
 		return nil, err
 	}
-
 	if len(vers) == 0 {
 		return nil, fmt.Errorf("verification not found")
 	}
@@ -132,10 +123,8 @@ func (r *mutationResolver) AdminResolveVerification(ctx context.Context, verific
 	// If verified, update user's is_verified status
 	if status == "verified" {
 		userORM := orm.Load(&models.User{})
-		defer userORM.Close()
-
-		var foundUsers []models.User
-		if err := userORM.GetByFieldEquals("Id", ver.UserId).Scan(&foundUsers); err == nil && len(foundUsers) > 0 {
+		foundUsers, _ := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", ver.UserId)
+		if len(foundUsers) > 0 {
 			foundUsers[0].IsVerified = true
 			foundUsers[0].UpdatedAt = time.Now()
 			userORM.Update(&foundUsers[0], foundUsers[0].Id)
@@ -167,10 +156,8 @@ func (r *mutationResolver) AdminResolveReport(ctx context.Context, reportID stri
 	}
 
 	reportORM := orm.Load(&models.Report{})
-	defer reportORM.Close()
-
-	var reports []models.Report
-	if err := reportORM.GetByFieldEquals("Id", reportID).Scan(&reports); err != nil {
+	reports, err := ormcompat.GetByFieldEqualsSlice[models.Report](reportORM, "Id", reportID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -191,9 +178,8 @@ func (r *mutationResolver) AdminResolveReport(ctx context.Context, reportID stri
 		switch *action {
 		case "ban":
 			userORM := orm.Load(&models.User{})
-			defer userORM.Close()
-			var foundUsers []models.User
-			if err := userORM.GetByFieldEquals("Id", report.TargetId).Scan(&foundUsers); err == nil && len(foundUsers) > 0 {
+			foundUsers, _ := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", report.TargetId)
+			if len(foundUsers) > 0 {
 				foundUsers[0].IsBanned = true
 				foundUsers[0].UpdatedAt = time.Now()
 				userORM.Update(&foundUsers[0], foundUsers[0].Id)
@@ -316,16 +302,15 @@ func (r *queryResolver) AdminStats(ctx context.Context) (*model.AdminStats, erro
 	// These would be real database queries in production
 	// For now, return placeholder stats
 
-	userORM := orm.Load(&models.User{},
-		orm.WithCacheKey("admin:stats:users"),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(5*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer userORM.Close()
-
+	userORM := orm.Load(&models.User{})
 	var allUsers []models.User
-	userORM.GetAll().Scan(&allUsers)
+	if res, err := userORM.GetAll(); err == nil {
+		if s, ok := res.(*[]models.User); ok {
+			allUsers = *s
+		} else if s, ok := res.([]models.User); ok {
+			allUsers = s
+		}
+	}
 	totalUsers := int32(len(allUsers))
 
 	// Count subscribers by plan
@@ -353,19 +338,18 @@ func (r *queryResolver) AdminStats(ctx context.Context) (*model.AdminStats, erro
 
 	// Count pending items
 	verORM := orm.Load(&models.UserVerification{})
-	defer verORM.Close()
-	var pendingVers []models.UserVerification
-	verORM.GetByFieldEquals("Status", "pending").Scan(&pendingVers)
-
+	pendingVers, _ := ormcompat.GetByFieldEqualsSlice[models.UserVerification](verORM, "Status", "pending")
 	reportORM := orm.Load(&models.Report{})
-	defer reportORM.Close()
-	var pendingReports []models.Report
-	reportORM.GetByFieldEquals("Status", "pending").Scan(&pendingReports)
-
+	pendingReports, _ := ormcompat.GetByFieldEqualsSlice[models.Report](reportORM, "Status", "pending")
 	matchORM := orm.Load(&models.Match{})
-	defer matchORM.Close()
 	var allMatches []models.Match
-	matchORM.GetAll().Scan(&allMatches)
+	if res, err := matchORM.GetAll(); err == nil {
+		if s, ok := res.(*[]models.Match); ok {
+			allMatches = *s
+		} else if s, ok := res.([]models.Match); ok {
+			allMatches = s
+		}
+	}
 
 	return &model.AdminStats{
 		TotalUsers:           totalUsers,
@@ -399,11 +383,13 @@ func (r *queryResolver) AdminUsers(ctx context.Context, filters *model.AdminUser
 	}
 
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
 	var allUsers []models.User
-	if err := userORM.GetAll().Scan(&allUsers); err != nil {
+	if res, err := userORM.GetAll(); err != nil {
 		return nil, err
+	} else if s, ok := res.(*[]models.User); ok {
+		allUsers = *s
+	} else if s, ok := res.([]models.User); ok {
+		allUsers = s
 	}
 
 	// Apply filters
@@ -520,13 +506,15 @@ func (r *queryResolver) AdminReports(ctx context.Context, status *string, page *
 	}
 
 	reportORM := orm.Load(&models.Report{})
-	defer reportORM.Close()
-
 	var reports []models.Report
 	if status != nil {
-		reportORM.GetByFieldEquals("Status", *status).Scan(&reports)
-	} else {
-		reportORM.GetAll().Scan(&reports)
+		reports, _ = ormcompat.GetByFieldEqualsSlice[models.Report](reportORM, "Status", *status)
+	} else if res, err := reportORM.GetAll(); err == nil {
+		if s, ok := res.(*[]models.Report); ok {
+			reports = *s
+		} else if s, ok := res.([]models.Report); ok {
+			reports = s
+		}
 	}
 
 	result := make([]*model.AdminReport, len(reports))
