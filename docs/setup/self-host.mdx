@@ -1,6 +1,6 @@
 ---
-title: Self-host Blindly
-description: Deploy Blindly using Docker Compose or Kubernetes, and set up the mobile app via Expo, APKs, or app stores.
+title: Self-host Spark
+description: Deploy Spark using Docker Compose or Kubernetes, and set up the mobile app via Expo, APKs, or app stores.
 icon: "rocket"
 ---
 
@@ -9,17 +9,17 @@ import { Tabs, Tab, Steps, Callout, Card, CardGroup } from 'nextra/components'
 <img
   className="block dark:hidden w-56"
   src="/images/main-trans.png"
-  alt="Blindly Logo Light"
+  alt="Spark Logo Light"
 />
 <img
   className="hidden dark:block w-56"
   src="/images/main-trans.png"
-  alt="Blindly Logo Dark"
+  alt="Spark Logo Dark"
 />
 
 ## Overview
 
-You can self-host Blindly in a few ways:
+You can self-host Spark in a few ways:
 
 <CardGroup cols={3}>
   <Card title="Docker Compose" icon="boxes-packing" href="#docker-compose">
@@ -61,9 +61,9 @@ The Compose setup runs:
 
 <Steps>
   <li>
-    Create a `.env` file in the repository root (`blindly/.env`) with any required secrets and configs used by the backend. The Compose file already sets:
+    Create a `.env` file in the repository root (`spark/.env`) with any required secrets and configs used by the backend. The Compose file already sets:
     <ul>
-      <li><code>DATABASE_URL</code> to <code>postgres://blindly:blindly_password@postgres:5432/blindly?sslmode=disable</code></li>
+      <li><code>DATABASE_URL</code> to <code>postgres://spark:spark_password@postgres:5432/spark?sslmode=disable</code></li>
       <li><code>REDIS_URL</code> to <code>redis://redis:6379</code></li>
     </ul>
   </li>
@@ -96,7 +96,7 @@ The Compose setup runs:
 ## Kubernetes
 id: kubernetes
 
-Use the provided deployment manifest to run Blindly on a Kubernetes cluster. It includes:
+Use the provided deployment manifest to run Spark on a Kubernetes cluster. It includes:
 
 - Deployment with the backend service (`containerPort: 9000`)
 - Service exposing port `80` to route to the backend’s `9000`
@@ -108,7 +108,7 @@ The manifest is at:
 
 ```bash
 # Reference:
-# blindly/deployment.yaml
+# spark/deployment.yaml
 kubectl apply -f deployment.yaml
 ```
 
@@ -117,8 +117,8 @@ Key points in the manifest:
 - The `Service` maps `port: 80` → `targetPort: 9000`.
 - The `Ingress` contains NGINX annotations:
   - `ssl-redirect`, body size limits, timeouts, and buffering options
-- TLS is configured for `blindly.apps.mellob.in` (replace with your domain and secret)
-- The backend image is `registry.prod.lyzn.in/blindly` — update this to your registry if needed.
+- TLS is configured for your domain (replace with your domain and secret)
+- The backend image — update this to your registry if needed.
 
 ### Environment configuration
 

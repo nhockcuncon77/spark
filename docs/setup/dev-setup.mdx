@@ -1,6 +1,6 @@
 ---
 title: Developer Setup
-description: Get your local environment ready to build, run, test, and debug Blindly across backend, database, and mobile app.
+description: Get your local environment ready to build, run, test, and debug Spark across backend, database, and mobile app.
 icon: "toolbox"
 ---
 
@@ -9,12 +9,12 @@ import { Tabs, Tab, Steps, Callout, Card, CardGroup } from 'nextra/components'
 <img
   className="block dark:hidden w-56"
   src="/images/main-trans.png"
-  alt="Blindly Logo Light"
+  alt="Spark Logo Light"
 />
 <img
   className="hidden dark:block w-56"
   src="/images/main-trans.png"
-  alt="Blindly Logo Dark"
+  alt="Spark Logo Dark"
 />
 
 ## Overview
@@ -66,8 +66,8 @@ Ensure you have the following tools installed:
   <li>
     Clone the repository and enter the project root:
     ```bash
-    git clone https://github.com/MelloB1989/blindly.git
-    cd blindly
+    git clone https://github.com/nhockcuncon77/spark.git
+    cd spark
     ```
   </li>
   <li>
@@ -83,11 +83,11 @@ Ensure you have the following tools installed:
 
 ## Environment configuration
 
-Create a `.env` in the project root (`blindly/.env`) for runtime secrets used by the backend. Examples:
+Create a `.env` in the project root (`spark/.env`) for runtime secrets used by the backend. Examples:
 
 ```bash
 # Database & Cache
-DATABASE_URL=postgres://blindly:blindly_password@localhost:5432/blindly?sslmode=disable
+DATABASE_URL=postgres://spark:spark_password@localhost:5432/spark?sslmode=disable
 REDIS_URL=redis://localhost:6379
 
 # App configuration
@@ -107,7 +107,7 @@ The fastest way to get Postgres + Redis + migrations + backend is Docker Compose
 
 <Steps>
   <li>
-    From the root (`blindly/`), run:
+    From the root (`spark/`), run:
     ```bash
     docker compose up --build
     ```
@@ -159,9 +159,9 @@ If you prefer to run migrations manually (without Docker):
         Set required env for `drizzle.config.ts`:
         ```bash
         export DB_HOST=localhost
-        export DB_USER=blindly
-        export DB_PASSWORD=blindly_password
-        export DB_NAME=blindly
+        export DB_USER=spark
+        export DB_PASSWORD=spark_password
+        export DB_NAME=spark
         export DB_PORT=5432
         export DB_SSL=false
         ```
@@ -197,13 +197,13 @@ If you prefer to run migrations manually (without Docker):
     Install dependencies and build:
     ```bash
     go mod download
-    go build -o blindly .
+    go build -o spark .
     ```
   </li>
   <li>
     Run the server:
     ```bash
-    ./blindly
+    ./spark
     ```
     The server should listen on port `9000`.
   </li>
@@ -362,7 +362,7 @@ If you prefer to run migrations manually (without Docker):
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Self-host Blindly" icon="rocket" href="/docs/setup/self-host">
+  <Card title="Self-host Spark" icon="rocket" href="/docs/setup/self-host">
     Deploy locally or in Kubernetes and share with your team.
   </Card>
   <Card title="Contribution Guidelines" icon="handshake" href="/docs/setup/contributing">
