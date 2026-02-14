@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Globe, UserPlus, ShieldCheck } from "lucide-react";
 
 // Web app URL: set VITE_SPARK_APP_URL in .env (e.g. https://your-expo-web.onrender.com) or use /app if Expo web is served under same host at /app
-const SPARK_WEB_APP_URL = import.meta.env.VITE_SPARK_APP_URL || "/app";
+const SPARK_WEB_APP_URL = import.meta.env.VITE_SPARK_APP_URL || "/app/";
 
 export const Join = () => {
   return (

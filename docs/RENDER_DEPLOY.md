@@ -68,10 +68,10 @@ Optional (for full features):
 |-------|--------|
 | **Name** | `spark-landing` (or `spark`) |
 | **Root Directory** | `landing` |
-| **Build Command** | `npm install && npm run build` |
+| **Build Command** | `npm install && npm run build:with-app` |
 | **Publish Directory** | `dist` |
 
-**Important:** Set **Build Command** to exactly `npm install && npm run build` and nothing else. Clear any default (e.g. “bun install”) so Render does not merge it; otherwise you may get `npm run buildbun` and the build will fail.
+**Important:** Use `build:with-app` to include the web app at `/app/`; use `build` for landing only. Clear any default (e.g. “bun install”) so Render does not merge it; otherwise you may get `npm run buildbun` and the build will fail.
 
 ### Environment variables (optional)
 
@@ -104,6 +104,6 @@ Use **Internal** URLs so traffic stays on Render’s network (faster and free of
 | Service | Type | Root Dir | Build | Start / Publish |
 |--------|------|----------|--------|------------------|
 | Backend | Web Service | `services` | `go build ... -o spark .` | `./spark` |
-| Landing | Static Site | `landing` | `npm install && npm run build` | `dist` |
+| Landing | Static Site | `landing` | `npm install && npm run build:with-app` | `dist` |
 
 The backend now reads `PORT` from the environment so Render can inject it automatically.

@@ -5,5 +5,5 @@ services:
     name: spark-landing
     runtime: static
     rootDir: landing
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm run build:with-app
     staticPublishPath: dist
