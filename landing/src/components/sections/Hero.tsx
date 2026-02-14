@@ -86,9 +86,12 @@ export const Hero = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-brand-purple-light to-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
           </Link>
 
-          <button className="px-9 py-4 rounded-full border border-border-medium text-text-primary font-medium text-lg hover:bg-white/5 hover:border-white/30 transition-all backdrop-blur-sm">
+          <Link
+            to="/join"
+            className="px-9 py-4 rounded-full border border-border-medium text-text-primary font-medium text-lg hover:bg-white/5 hover:border-white/30 transition-all backdrop-blur-sm inline-block text-center"
+          >
             Download Latest
-          </button>
+          </Link>
         </motion.div>
 
         {/* Actual UI Mockups - "Card Deal" Animation */}

@@ -19,6 +19,7 @@ import { DocsSetupContributing } from "./components/pages/DocsSetupContributing"
 import { DocsPrivacy } from "./components/pages/DocsPrivacy";
 import { DocsTerms } from "./components/pages/DocsTerms";
 import { DocsCsae } from "./components/pages/DocsCsae";
+import { Join } from "./components/pages/Join";
 
 function HomePage() {
   return (
@@ -57,6 +58,7 @@ function App() {
           <Route path="terms" element={<DocsTerms />} />
           <Route path="csae" element={<DocsCsae />} />
         </Route>
+        <Route path="/join" element={<Join />} />
         <Route path="/delete-account" element={<DeleteAccount />} />
       </Routes>
     </BrowserRouter>
