@@ -12,6 +12,7 @@ type User struct {
 	FirstName         string         `json:"first_name"`
 	LastName          string         `json:"last_name"`
 	Email             string         `json:"email"`
+	PasswordHash      string         `json:"-" db:"password_hash"` // bcrypt hash for native auth; empty when using WorkOS
 	Dob               time.Time      `json:"dob"`
 	Pfp               string         `json:"pfp"`
 	Bio               string         `json:"bio"`

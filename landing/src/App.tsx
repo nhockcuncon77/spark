@@ -20,6 +20,8 @@ import { DocsPrivacy } from "./components/pages/DocsPrivacy";
 import { DocsTerms } from "./components/pages/DocsTerms";
 import { DocsCsae } from "./components/pages/DocsCsae";
 import { Join } from "./components/pages/Join";
+import { Login } from "./components/pages/Login";
+import { Register } from "./components/pages/Register";
 
 function HomePage() {
   return (
@@ -59,6 +61,8 @@ function App() {
           <Route path="csae" element={<DocsCsae />} />
         </Route>
         <Route path="/join" element={<Join />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/delete-account" element={<DeleteAccount />} />
       </Routes>
     </BrowserRouter>

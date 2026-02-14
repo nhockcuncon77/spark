@@ -3,6 +3,7 @@ package users
 import (
 	"spark/internal/anal"
 	"spark/internal/auth"
+	"spark/internal/auth/native"
 	"spark/internal/auth/workos"
 	"spark/internal/blurer"
 	"spark/internal/graph/directives"
@@ -55,8 +56,10 @@ func (r *Resolver) LoginWithPassword(ctx context.Context, email string, password
 	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
 	case "workos":
 		payload, err = workos.NewWorkosAuth().LoginWithPassword(email, password)
+	case "native":
+		payload, err = native.NewNativeAuth().LoginWithPassword(email, password)
 	default:
-		return nil, fmt.Errorf("invalid auth service")
+		return nil, fmt.Errorf("invalid auth service (set SPARK_AUTH_SERVICE to workos or native)")
 	}
 
 	if err == nil && payload != nil && payload.User != nil {
@@ -82,8 +85,10 @@ func (r *Resolver) VerifyEmailLoginCode(ctx context.Context, email string, code 
 	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
 	case "workos":
 		return workos.NewWorkosAuth().VerifyEmailLoginCode(email, code)
+	case "native":
+		return native.NewNativeAuth().VerifyEmailLoginCode(email, code)
 	default:
-		return nil, fmt.Errorf("invalid auth service")
+		return nil, fmt.Errorf("invalid auth service (set SPARK_AUTH_SERVICE to workos or native)")
 	}
 }
 

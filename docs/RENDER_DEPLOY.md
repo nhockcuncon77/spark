@@ -47,7 +47,7 @@ Optional (for full features):
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` – for S3/file uploads
 - `MAILER_ADDRESS` – sender email for notifications
 - `POSTHOG_API_KEY` – analytics
-- `SPARK_AUTH_SERVICE` – e.g. `workos` or `password`
+- `SPARK_AUTH_SERVICE` – `workos` (WorkOS) or `native` (email/password stored in your Postgres; requires `password_hash` column on `users` – run migration in `db/drizzle/0015_add_password_hash.sql`)
 
 ### After first deploy
 
@@ -77,7 +77,8 @@ Optional (for full features):
 
 For the **landing** (and when using `build:with-app`, for the **Expo web app** baked into `/app/`):
 
-- **`EXPO_PUBLIC_SPARK_API_URL`** (or **`EXPO_PUBLIC_API_URL`**) – Backend API URL, e.g. `https://spark-xxxx.onrender.com`. The Expo web app reads this at build time; set it in the Render static site’s **Environment** so the built app points to your API.
+- **`VITE_API_URL`** – Backend API base URL (e.g. `https://spark-xxxx.onrender.com`) for the landing **login and register** pages. Required for “Open in browser” → sign in/sign up to work.
+- **`EXPO_PUBLIC_SPARK_API_URL`** (or **`EXPO_PUBLIC_API_URL`**) – Backend API URL for the Expo web app at `/app/`. Set in the Render static site’s **Environment** so the built app points to your API.
 - **`VITE_SPARK_APP_URL`** – Only if you host the web app elsewhere; otherwise the landing uses `/app/` by default.
 - **`EXPO_PUBLIC_POSTHOG_API_KEY`** / **`EXPO_PUBLIC_POSTHOG_HOST_URL`** – Optional; if unset, PostHog is skipped.
 

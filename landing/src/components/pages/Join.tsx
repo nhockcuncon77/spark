@@ -4,7 +4,9 @@ import { Footer } from "../layout/Footer";
 import { Link } from "react-router-dom";
 import { Globe, UserPlus, ShieldCheck } from "lucide-react";
 
-// Web app URL: set VITE_SPARK_APP_URL in .env (e.g. https://your-expo-web.onrender.com) or use /app if Expo web is served under same host at /app
+// When user clicks "Open in browser", send them to login (then they get to /app after auth)
+const SPARK_LOGIN_URL = "/login";
+// Web app URL after login: set VITE_SPARK_APP_URL in .env or use /app if Expo web is served at /app
 const SPARK_WEB_APP_URL = import.meta.env.VITE_SPARK_APP_URL || "/app/";
 
 export const Join = () => {
@@ -71,10 +73,10 @@ export const Join = () => {
             </motion.div>
           </div>
 
-          {/* Primary CTA: Open in browser */}
+          {/* Primary CTA: Open in browser → login/register */}
           <div className="mb-10">
             <a
-              href={SPARK_WEB_APP_URL}
+              href={SPARK_LOGIN_URL}
               className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-white text-bg-primary font-bold rounded-full text-xl hover:shadow-[0_0_50px_rgba(124,58,237,0.4)] hover:scale-105 transition-all"
             >
               <Globe size={24} />

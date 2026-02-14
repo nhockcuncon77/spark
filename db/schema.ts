@@ -14,6 +14,8 @@ export const users = pgTable("users", {
   first_name: varchar("first_name").notNull(),
   last_name: varchar("last_name").notNull(),
   email: varchar("email").notNull(),
+  /** Bcrypt hash for native email/password auth; null when using WorkOS */
+  password_hash: varchar("password_hash"),
   username: varchar("username"),
   phone: varchar("phone").notNull(),
   dob: timestamp("dob").notNull(),
