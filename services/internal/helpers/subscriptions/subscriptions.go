@@ -387,13 +387,10 @@ func ReactivateSubscription(userID string) error {
 // ExpireSubscription marks a subscription as expired
 func ExpireSubscription(subscriptionID string) error {
 	subORM := orm.Load(&models.UserSubscription{})
-	defer subORM.Close()
-
-	var subs []models.UserSubscription
-	if err := subORM.GetByFieldEquals("Id", subscriptionID).Scan(&subs); err != nil {
+	subs, err := ormcompat.GetByFieldEqualsSlice[models.UserSubscription](subORM, "Id", subscriptionID)
+	if err != nil {
 		return err
 	}
-
 	if len(subs) == 0 {
 		return fmt.Errorf("subscription not found")
 	}
@@ -403,10 +400,8 @@ func ExpireSubscription(subscriptionID string) error {
 
 	// Update user's plan back to free
 	userORM := orm.Load(&models.User{})
-	defer userORM.Close()
-
-	var users []models.User
-	if err := userORM.GetByFieldEquals("Id", subs[0].UserId).Scan(&users); err == nil && len(users) > 0 {
+	users, _ := ormcompat.GetByFieldEqualsSlice[models.User](userORM, "Id", subs[0].UserId)
+	if len(users) > 0 {
 		users[0].SubscriptionPlanId = PlanFree
 		users[0].UpdatedAt = time.Now()
 		userORM.Update(&users[0], users[0].Id)

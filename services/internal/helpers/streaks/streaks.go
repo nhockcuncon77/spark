@@ -79,23 +79,14 @@ func GetOrCreateStreak(matchID string) (*models.MatchStreak, error) {
 
 // GetMatchStreak returns the streak for a match
 func GetMatchStreak(matchID string) (*models.MatchStreak, error) {
-	streakORM := orm.Load(&models.MatchStreak{},
-		orm.WithCacheKey(fmt.Sprintf("match_streak:%s", matchID)),
-		orm.WithCacheOn(true),
-		orm.WithCacheTTL(5*time.Minute),
-		orm.WithCacheMethod(config.GetEnvRaw("CACHE_METHOD")),
-	)
-	defer streakORM.Close()
-
-	var streaks []models.MatchStreak
-	if err := streakORM.GetByFieldEquals("MatchId", matchID).Scan(&streaks); err != nil {
+	streakORM := orm.Load(&models.MatchStreak{})
+	streaks, err := ormcompat.GetByFieldEqualsSlice[models.MatchStreak](streakORM, "MatchId", matchID)
+	if err != nil {
 		return nil, err
 	}
-
 	if len(streaks) == 0 {
 		return nil, nil
 	}
-
 	return &streaks[0], nil
 }
 
