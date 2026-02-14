@@ -5,7 +5,6 @@ import (
 	"spark/internal/helpers/pushnotify"
 	"spark/internal/helpers/users"
 	"spark/internal/models"
-	"fmt"
 	"log"
 	"time"
 

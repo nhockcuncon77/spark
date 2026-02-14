@@ -1,15 +1,15 @@
 package ai
 
 import (
-	"spark/internal/helpers/subscriptions"
+	"encoding/json"
 	"spark/internal/helpers/ormcompat"
+	"spark/internal/helpers/subscriptions"
 	"spark/internal/models"
 	"fmt"
 	"log"
 
 	"github.com/MelloB1989/karma/ai"
 	"github.com/MelloB1989/karma/orm"
-	"github.com/MelloB1989/karma/utils"
 )
 
 // ReplyTone represents the tone for AI-generated replies
@@ -115,7 +115,6 @@ func GenerateAIReplies(userID, chatID string, contextMessages int, preferredTone
 		ai.WithMaxTokens(500),
 		ai.WithTemperature(0.8),
 		ai.WithSystemMessage(aiReplySystemPrompt),
-		ai.WithJSONResponse(),
 	)
 
 	resp, err := kai.GenerateFromSinglePrompt(conversationContext)
@@ -159,7 +158,7 @@ func parseAIReplies(response string) ([]AIReply, error) {
 	}
 
 	var parsed aiReplyResponse
-	if err := utils.JSONUnmarshal([]byte(response), &parsed); err != nil {
+	if err := json.Unmarshal([]byte(response), &parsed); err != nil {
 		return nil, err
 	}
 
