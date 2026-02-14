@@ -1,17 +1,6 @@
 # Spark
 
-**Your own personality-first dating app.** This project was created from the [Blindly](https://github.com/MelloB1989/blindly) codebase using the same architecture. Replace `spark.example.com` and `com.yourapp.spark` with your domain and app package, then run `bun install` at the repo root. If you change GraphQL schemas, install Go and run `bun gqlgen` from the repo root.
-
-<p align="center">
-  <a href="https://spark.example.com">
-    <img
-      src="https://github.com/yourapp/spark/raw/main/landing/public/og-image.png?raw=true"
-      alt="Spark"
-      style="max-width: 100%; height: auto;"
-    />
-  </a>
-</p>
-
+**Your own personality-first dating app.** 
 **Personality-first dating. Real conversations before photos.**
 
 Spark is a next-generation dating platform that challenges the appearance-first culture of modern dating apps. Instead of swiping on photos, users connect through personality, hobbies, values, and meaningful conversations — with photos revealed only after mutual interest and genuine interaction.
