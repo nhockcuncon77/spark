@@ -16,11 +16,16 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/MelloB1989/karma/config"
 	"github.com/MelloB1989/karma/database"
 	"github.com/MelloB1989/karma/utils"
 )
+
+func authService() string {
+	return strings.ToLower(strings.TrimSpace(config.GetEnvRaw("SPARK_AUTH_SERVICE")))
+}
 
 type Resolver struct{}
 
@@ -32,7 +37,7 @@ func (r *Resolver) CreateUser(ctx context.Context, input model.CreateUserInput) 
 	var payload *model.AuthPayload
 	var err error
 
-	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
+	switch authService() {
 	case "workos":
 		payload, err = workos.NewWorkosAuth().CreateUser(input)
 	case "native":
@@ -55,7 +60,7 @@ func (r *Resolver) LoginWithPassword(ctx context.Context, email string, password
 	var payload *model.AuthPayload
 	var err error
 
-	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
+	switch authService() {
 	case "workos":
 		payload, err = workos.NewWorkosAuth().LoginWithPassword(email, password)
 	case "native":
@@ -75,7 +80,7 @@ func (r *Resolver) LoginWithPassword(ctx context.Context, email string, password
 }
 
 func (r *Resolver) RequestEmailLoginCode(ctx context.Context, email string) (bool, error) {
-	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
+	switch authService() {
 	case "workos":
 		return workos.NewWorkosAuth().RequestEmailLoginCode(email)
 	case "native":
@@ -86,7 +91,7 @@ func (r *Resolver) RequestEmailLoginCode(ctx context.Context, email string) (boo
 }
 
 func (r *Resolver) VerifyEmailLoginCode(ctx context.Context, email string, code string) (*model.AuthPayload, error) {
-	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
+	switch authService() {
 	case "workos":
 		return workos.NewWorkosAuth().VerifyEmailLoginCode(email, code)
 	case "native":
