@@ -7,5 +7,7 @@ func GetAllowedOrigins() []string {
 		"http://localhost:8080",
 		"http://localhost:9000",
 		"http://localhost:5170",
+		"https://spark-frontend-tlcj.onrender.com",
+		"http://spark-frontend-tlcj.onrender.com",
 	}
 }
