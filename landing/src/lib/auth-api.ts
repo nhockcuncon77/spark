@@ -9,6 +9,9 @@ const API_BASE =
   "https://spark-c6bk.onrender.com";
 const GRAPHQL_URL = API_BASE ? `${API_BASE.replace(/\/$/, "")}/query` : "";
 
+/** Abort request after this ms (avoids hanging forever on cold start or network issues) */
+const REQUEST_TIMEOUT_MS = 60_000;
+
 export type AuthUser = {
   id: string;
   first_name: string;
@@ -36,20 +39,35 @@ async function graphql<T>(query: string, variables: Record<string, unknown>): Pr
   if (!GRAPHQL_URL) {
     throw new Error("VITE_API_URL is not set. Please set it in your .env (e.g. VITE_API_URL=https://your-backend.onrender.com)");
   }
-  const res = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(GRAPHQL_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      throw new Error(`Request failed: ${res.status}`);
+    }
+    const json = await res.json();
+    if (json.errors?.length) {
+      const msg = json.errors[0]?.message ?? "GraphQL error";
+      throw new Error(msg);
+    }
+    return json.data as T;
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (e instanceof Error) {
+      if (e.name === "AbortError") {
+        throw new Error("Request timed out. The server may be starting up—please try again in a moment.");
+      }
+      throw e;
+    }
+    throw e;
   }
-  const json = await res.json();
-  if (json.errors?.length) {
-    const msg = json.errors[0]?.message ?? "GraphQL error";
-    throw new Error(msg);
-  }
-  return json.data as T;
 }
 
 const LOGIN_MUTATION = `

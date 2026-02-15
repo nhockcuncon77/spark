@@ -65,9 +65,10 @@ export const Register = () => {
         window.location.href = getAppUrl();
         return;
       }
-      setError(!result.success ? result.error : "Registration failed.");
+      const errMsg = !result.success ? result.error : "Registration failed.";
+      setError(errMsg.includes("invalid auth service") ? "Registration is not available yet. The server must have SPARK_AUTH_SERVICE=native set." : errMsg);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
