@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/MelloB1989/karma/config"
+	"github.com/MelloB1989/karma/database"
 	"github.com/MelloB1989/karma/utils"
 	"github.com/MelloB1989/karma/v2/orm"
 )
@@ -25,7 +26,23 @@ func CreateUser(user models.User) (*models.User, error) {
 		return nil, err
 	}
 
+	// Ensure password_hash is persisted (karma ORM may skip json:"-" fields on Insert)
+	if user.PasswordHash != "" {
+		_ = SetPasswordHash(user.Id, user.PasswordHash)
+	}
+
 	return &user, nil
+}
+
+// SetPasswordHash updates the user's password_hash in the DB (used when ORM Insert omits it).
+func SetPasswordHash(userID, hash string) error {
+	db, err := database.PostgresConn()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	_, err = db.Exec("UPDATE users SET password_hash = $1 WHERE id = $2", hash, userID)
+	return err
 }
 
 func GetUserById(id string) (*models.User, error) {

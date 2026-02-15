@@ -118,7 +118,12 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to auth if not authenticated
+      // On web, send users to landing login so they sign in there and return to /app
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        const base = window.location.origin;
+        window.location.href = `${base}/login`;
+        return;
+      }
       router.replace("/(auth)/welcome");
     } else if (isAuthenticated && inAuthGroup) {
       // Check actual user data for onboarding status

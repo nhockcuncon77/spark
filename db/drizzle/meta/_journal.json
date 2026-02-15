@@ -120,6 +120,13 @@
       "when": 1765914600000,
       "tag": "0016_subscription_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1765914700000,
+      "tag": "0017_users_missing_columns",
+      "breakpoints": true
     }
   ]
 }

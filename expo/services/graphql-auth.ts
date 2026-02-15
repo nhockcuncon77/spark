@@ -673,20 +673,23 @@ class GraphQLAuthService {
 
   /**
    * Restore session from stored credentials
+   * On web, initializes token from localStorage first (e.g. after login on landing).
    */
   async restoreSession(): Promise<AuthResult> {
     try {
-      // First check if we have a stored user
+      if (Platform.OS === "web") {
+        await initializeToken();
+      }
+      // On web we may have only token (e.g. from landing login); still try getMe
       const storedUser = await getStoredUser();
-
-      if (!storedUser) {
+      if (!storedUser && Platform.OS !== "web") {
         return {
           success: false,
           error: "No stored session",
         };
       }
 
-      // Validate the session by fetching current user
+      // Validate the session by fetching current user (token from storage on web)
       const meResult = await this.getMe();
 
       if (meResult.success && meResult.user) {

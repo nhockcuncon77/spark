@@ -71,7 +71,7 @@ Optional (for full features):
 | **Build Command** | `npm install && npm run build:with-app` |
 | **Publish Directory** | `dist` |
 
-**Important:** Use `build:with-app` to include the web app at `/app/`; use `build` for landing only. Clear any default (e.g. “bun install”) so Render does not merge it; otherwise you may get `npm run buildbun` and the build will fail.
+**Important:** Use `build:with-app` so that after login users get the **full Spark dating app** at `/app/` (Discover, Chat, Community, Profile, Maytri). Use `build` for landing-only (no app). Set **`EXPO_PUBLIC_SPARK_API_URL`** to your backend URL so the app at `/app/` can call the API. Clear any default (e.g. “bun install”) so Render does not merge it; otherwise you may get `npm run buildbun` and the build will fail.
 
 ### Environment variables (optional)
 
