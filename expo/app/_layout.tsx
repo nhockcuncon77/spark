@@ -168,7 +168,11 @@ function RootLayoutNav() {
   }
 
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        contentStyle: { backgroundColor: "#0B0223" },
+      }}
+    >
       <Stack.Screen
         name="(auth)"
         options={{
@@ -293,6 +297,15 @@ function AnimatedSplashScreen({ children }: { children: React.ReactNode }) {
   const [isAppReady, setAppReady] = useState(false);
   const [isSplashVideoComplete, setSplashVideoComplete] = useState(false);
   const [isSplashAnimationComplete, setAnimationComplete] = useState(false);
+  const isWeb = Platform.OS === "web";
+
+  // On web, expo-video often never fires playToEnd so the splash blocks the app. Skip video and dismiss quickly.
+  useEffect(() => {
+    if (isWeb && isAppReady && !isSplashVideoComplete) {
+      const t = setTimeout(() => setSplashVideoComplete(true), 400);
+      return () => clearTimeout(t);
+    }
+  }, [isWeb, isAppReady, isSplashVideoComplete]);
 
   useEffect(() => {
     if (isAppReady && isSplashVideoComplete) {
@@ -306,25 +319,33 @@ function AnimatedSplashScreen({ children }: { children: React.ReactNode }) {
 
   const onVideoLoaded = useCallback(async () => {
     try {
-      // Hide native splash screen once video is loaded
       await SplashScreen.hideAsync();
     } catch (e) {
-      // Ignore errors
+      // ignore
     } finally {
       setAppReady(true);
     }
   }, []);
 
   const videoElement = useMemo(() => {
+    if (isWeb) {
+      return null;
+    }
     return (
       <SplashVideo
         onLoaded={onVideoLoaded}
-        onFinish={() => {
-          setSplashVideoComplete(true);
-        }}
+        onFinish={() => setSplashVideoComplete(true)}
       />
     );
-  }, [onVideoLoaded]);
+  }, [onVideoLoaded, isWeb]);
+
+  // On web, still need to signal app ready (fonts + mount)
+  useEffect(() => {
+    if (isWeb) {
+      SplashScreen.hideAsync().catch(() => {});
+      setAppReady(true);
+    }
+  }, [isWeb]);
 
   return (
     <View style={{ flex: 1 }}>

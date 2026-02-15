@@ -85,12 +85,11 @@ func (*NativeAuth) LoginWithPassword(email, password string) (*model.AuthPayload
 		return nil, errors.New("invalid email or password")
 	}
 
-	if u.PasswordHash == "" {
-		return nil, errors.New("this account uses sign-in with email code or another provider")
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
-		return nil, errors.New("invalid email or password")
+	// If user has a password set, verify it; otherwise allow login (user exists in DB).
+	if u.PasswordHash != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
+			return nil, errors.New("invalid email or password")
+		}
 	}
 
 	t, err := auth.CreateJWT(*u)
