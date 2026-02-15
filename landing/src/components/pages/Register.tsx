@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Navbar } from "../layout/Navbar";
 import { Footer } from "../layout/Footer";
 import { register, persistAuth, getAppUrl } from "../../lib/auth-api";
-import { Mail, Lock, User, Calendar } from "lucide-react";
+import { Mail, Lock, User, Calendar, ChevronDown } from "lucide-react";
 
-const GENDERS = ["MALE", "FEMALE", "NON_BINARY", "OTHER"];
+const GENDERS = [
+  { value: "MALE", label: "Male" },
+  { value: "FEMALE", label: "Female" },
+  { value: "NON_BINARY", label: "Non-binary" },
+  { value: "OTHER", label: "Other" },
+];
 
 export const Register = () => {
   const [email, setEmail] = useState("");
@@ -14,8 +19,20 @@ export const Register = () => {
   const [lastName, setLastName] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
+  const [genderOpen, setGenderOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const genderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (genderRef.current && !genderRef.current.contains(e.target as Node)) {
+        setGenderOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +91,45 @@ export const Register = () => {
                 {error}
               </div>
             )}
+
+            {/* Gender first so it's visible at the beginning */}
+            <div ref={genderRef} className="relative">
+              <label className="block text-sm font-medium text-text-secondary mb-2">Gender</label>
+              <button
+                type="button"
+                onClick={() => setGenderOpen(!genderOpen)}
+                disabled={loading}
+                className="w-full flex items-center justify-between gap-3 rounded-xl bg-white/5 border border-border-subtle focus:border-brand-purple px-4 py-3 text-left text-white outline-none hover:border-white/20"
+              >
+                <span className={gender ? "" : "text-text-muted"}>
+                  {gender ? GENDERS.find((g) => g.value === gender)?.label ?? gender : "Select gender"}
+                </span>
+                <ChevronDown
+                  className={`w-5 h-5 shrink-0 text-text-muted transition-transform ${genderOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {genderOpen && (
+                <ul
+                  className="absolute z-10 mt-1 w-full rounded-xl border border-border-subtle bg-bg-elevated py-1 shadow-lg"
+                  role="listbox"
+                >
+                  {GENDERS.map((g) => (
+                    <li key={g.value} role="option">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGender(g.value);
+                          setGenderOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 ${gender === g.value ? "bg-brand-purple/20 text-brand-purple-light" : ""}`}
+                      >
+                        {g.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -152,23 +208,6 @@ export const Register = () => {
                   disabled={loading}
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">Gender</label>
-              <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="w-full rounded-xl bg-white/5 border border-border-subtle focus:border-brand-purple px-4 py-3 text-white outline-none"
-                disabled={loading}
-              >
-                <option value="">Select</option>
-                {GENDERS.map((g) => (
-                  <option key={g} value={g}>
-                    {g.replace("_", " ")}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <button
