@@ -1,0 +1,13 @@
+---
+description: Do not add Co-authored-by or any co-author trailer to git commit messages
+alwaysApply: true
+---
+
+# Commit messages: no co-author
+
+When creating git commits (e.g. via `git commit -m "..."` or suggesting commit messages):
+
+- **Do not** add `Co-authored-by: Cursor` or any `Co-authored-by:` line to the commit message.
+- Use only the main commit message line (and optional body). No trailers (Co-authored-by, Signed-off-by, etc.) unless the user explicitly asks for them.
+
+This applies to all commits made in this project.

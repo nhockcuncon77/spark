@@ -92,45 +92,6 @@ export const Register = () => {
               </div>
             )}
 
-            {/* Gender first so it's visible at the beginning */}
-            <div ref={genderRef} className="relative">
-              <label className="block text-sm font-medium text-text-secondary mb-2">Gender</label>
-              <button
-                type="button"
-                onClick={() => setGenderOpen(!genderOpen)}
-                disabled={loading}
-                className="w-full flex items-center justify-between gap-3 rounded-xl bg-white/5 border border-border-subtle focus:border-brand-purple px-4 py-3 text-left text-white outline-none hover:border-white/20"
-              >
-                <span className={gender ? "" : "text-text-muted"}>
-                  {gender ? GENDERS.find((g) => g.value === gender)?.label ?? gender : "Select gender"}
-                </span>
-                <ChevronDown
-                  className={`w-5 h-5 shrink-0 text-text-muted transition-transform ${genderOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              {genderOpen && (
-                <ul
-                  className="absolute z-10 mt-1 w-full rounded-xl border border-border-subtle bg-bg-elevated py-1 shadow-lg"
-                  role="listbox"
-                >
-                  {GENDERS.map((g) => (
-                    <li key={g.value} role="option">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGender(g.value);
-                          setGenderOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 ${gender === g.value ? "bg-brand-purple/20 text-brand-purple-light" : ""}`}
-                      >
-                        {g.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">First name</label>
@@ -208,6 +169,44 @@ export const Register = () => {
                   disabled={loading}
                 />
               </div>
+            </div>
+
+            <div ref={genderRef} className="relative">
+              <label className="block text-sm font-medium text-text-secondary mb-2">Gender</label>
+              <button
+                type="button"
+                onClick={() => setGenderOpen(!genderOpen)}
+                disabled={loading}
+                className="w-full flex items-center justify-between gap-3 rounded-xl bg-white/5 border border-border-subtle focus:border-brand-purple px-4 py-3 text-left text-white outline-none hover:border-white/20"
+              >
+                <span className={gender ? "" : "text-text-muted"}>
+                  {gender ? GENDERS.find((g) => g.value === gender)?.label ?? gender : "Select gender"}
+                </span>
+                <ChevronDown
+                  className={`w-5 h-5 shrink-0 text-text-muted transition-transform ${genderOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {genderOpen && (
+                <ul
+                  className="absolute z-10 mt-1 w-full rounded-xl border border-border-subtle bg-bg-elevated py-1 shadow-lg"
+                  role="listbox"
+                >
+                  {GENDERS.map((g) => (
+                    <li key={g.value} role="option">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGender(g.value);
+                          setGenderOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 text-left text-white hover:bg-white/10 ${gender === g.value ? "bg-brand-purple/20 text-brand-purple-light" : ""}`}
+                      >
+                        {g.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <button
