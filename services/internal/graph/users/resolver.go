@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/MelloB1989/karma/config"
@@ -23,8 +24,18 @@ import (
 	"github.com/MelloB1989/karma/utils"
 )
 
+// authService reads SPARK_AUTH_SERVICE from the process env first (for Render/CI where there is no .env).
+// If unset, defaults to "native" so create user / login work without configuring WorkOS.
 func authService() string {
-	return strings.ToLower(strings.TrimSpace(config.GetEnvRaw("SPARK_AUTH_SERVICE")))
+	v := os.Getenv("SPARK_AUTH_SERVICE")
+	if v == "" {
+		v = config.GetEnvRaw("SPARK_AUTH_SERVICE")
+	}
+	v = strings.ToLower(strings.TrimSpace(v))
+	if v == "" {
+		return "native"
+	}
+	return v
 }
 
 type Resolver struct{}

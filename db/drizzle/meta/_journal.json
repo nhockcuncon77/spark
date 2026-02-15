@@ -113,6 +113,13 @@
       "when": 1765914500000,
       "tag": "0015_add_password_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1765914600000,
+      "tag": "0016_subscription_tables",
+      "breakpoints": true
     }
   ]
 }
