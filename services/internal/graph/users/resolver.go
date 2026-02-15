@@ -35,6 +35,8 @@ func (r *Resolver) CreateUser(ctx context.Context, input model.CreateUserInput) 
 	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
 	case "workos":
 		payload, err = workos.NewWorkosAuth().CreateUser(input)
+	case "native":
+		payload, err = native.NewNativeAuth().CreateUser(input)
 	default:
 		return nil, fmt.Errorf("invalid auth service")
 	}
@@ -76,6 +78,8 @@ func (r *Resolver) RequestEmailLoginCode(ctx context.Context, email string) (boo
 	switch config.GetEnvRaw("SPARK_AUTH_SERVICE") {
 	case "workos":
 		return workos.NewWorkosAuth().RequestEmailLoginCode(email)
+	case "native":
+		return native.NewNativeAuth().RequestEmailLoginCode(email)
 	default:
 		return false, fmt.Errorf("invalid auth service")
 	}
