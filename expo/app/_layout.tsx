@@ -1,5 +1,12 @@
 import React, { useEffect, useCallback, useState, useMemo, useRef } from "react";
-import { View, ActivityIndicator, StyleSheet, Animated } from "react-native";
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  Animated,
+  Platform,
+  Dimensions,
+} from "react-native";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack, useRouter, useSegments, Href } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -170,7 +177,7 @@ function RootLayoutNav() {
   return (
     <Stack
       screenOptions={{
-        contentStyle: { backgroundColor: "#0B0223" },
+        contentStyle: { backgroundColor: "#0B0223", flex: 1 },
       }}
     >
       <Stack.Screen
@@ -347,8 +354,13 @@ function AnimatedSplashScreen({ children }: { children: React.ReactNode }) {
     }
   }, [isWeb]);
 
+  const innerStyle =
+    isWeb && typeof window !== "undefined"
+      ? { flex: 1 as const, minHeight: window.innerHeight }
+      : { flex: 1 as const };
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={innerStyle}>
       {isAppReady && children}
       {!isSplashAnimationComplete && (
         <Animated.View
@@ -403,9 +415,14 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 
+  const rootStyle =
+    Platform.OS === "web"
+      ? { flex: 1 as const, minHeight: Dimensions.get("window").height }
+      : { flex: 1 as const };
+
   return (
     <AnimatedSplashScreen>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={rootStyle}>
         {config.posthog_api_key ? (
           <PostHogProvider
             apiKey={config.posthog_api_key}
