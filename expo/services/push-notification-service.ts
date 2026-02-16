@@ -362,12 +362,9 @@ export function usePushNotifications() {
   }, [router]);
 
   useEffect(() => {
-    // Initialize on mount
+    if (Platform.OS === "web") return;
     pushNotificationManager.initialize();
-
-    // Set up response handler
     pushNotificationManager.setOnNotificationResponse(handleNotificationResponse);
-
     return () => {
       pushNotificationManager.cleanup();
     };

@@ -21,6 +21,7 @@ export default function EmailLoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const isValidEmail = email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -36,6 +37,7 @@ export default function EmailLoginScreen() {
       return;
     }
 
+    setError(null);
     setIsLoading(true);
     try {
       const result = await graphqlAuthService.requestEmailLoginCode(
@@ -47,14 +49,23 @@ export default function EmailLoginScreen() {
           `/(auth)/verify-code?email=${encodeURIComponent(email.trim().toLowerCase())}` as Href,
         );
       } else {
-        Alert.alert(
-          "Failed to Send Code",
-          result.error || "Could not send verification code. Please try again.",
-        );
+        const msg = result.error || "Could not send verification code. Please try again.";
+        setError(msg);
+        if (Platform.OS === "web" && typeof window !== "undefined") {
+          window.alert(`Failed to send code: ${msg}`);
+        } else {
+          Alert.alert("Failed to Send Code", msg);
+        }
       }
-    } catch (error) {
-      console.error("Request code error:", error);
-      Alert.alert("Error", "Something went wrong. Please try again.");
+    } catch (err) {
+      console.error("Request code error:", err);
+      const msg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(msg);
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        window.alert(`Error: ${msg}`);
+      } else {
+        Alert.alert("Error", msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -134,6 +145,20 @@ export default function EmailLoginScreen() {
                   />
                 </View>
               </Animated.View>
+
+              {/* Error message */}
+              {error && (
+                <View className="mb-4 py-3 px-4 rounded-xl bg-red-500/20 border border-red-500/40">
+                  <Typography variant="caption" className="text-red-400">
+                    {error}
+                  </Typography>
+                  {error.toLowerCase().includes("database auth") && (
+                    <Typography variant="caption" className="text-white/70 mt-2">
+                      Use &quot;Sign In&quot; below to log in with your password.
+                    </Typography>
+                  )}
+                </View>
+              )}
 
               {/* Send Code Button */}
               <Animated.View

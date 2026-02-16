@@ -53,12 +53,12 @@ export const Navbar = () => {
           >
             Safety
           </a>
-          <Link
-            to="/login"
+          <a
+            href="/app/email-login"
             className="px-5 py-2.5 rounded-full bg-white text-bg-primary font-medium text-sm transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
           >
             Open Spark
-          </Link>
+          </a>
           <Link
             to="/docs"
             className="px-5 py-2.5 rounded-full bg-brand-purple hover:bg-brand-purple-light text-white font-medium text-sm transition-all hover:shadow-[0_0_20px_rgba(124,58,237,0.5)]"
@@ -107,13 +107,13 @@ export const Navbar = () => {
               >
                 Safety
               </a>
-              <Link
-                to="/login"
+              <a
+                href="/app/email-login"
                 className="w-full py-3 rounded-full bg-white text-bg-primary font-medium text-lg text-center block"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Open Spark
-              </Link>
+              </a>
               <Link
                 to="/docs"
                 className="w-full py-3 rounded-full bg-brand-purple text-white font-medium text-lg text-center block"

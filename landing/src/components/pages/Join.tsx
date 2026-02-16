@@ -70,15 +70,15 @@ export const Join = () => {
             </motion.div>
           </div>
 
-          {/* Primary CTA: Open in browser → login (never /app until after auth) */}
+          {/* Primary CTA: Open in browser → Expo email-login (register or login) */}
           <div className="mb-10">
-            <Link
-              to="/login"
+            <a
+              href="/app/email-login"
               className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-white text-bg-primary font-bold rounded-full text-xl hover:shadow-[0_0_50px_rgba(124,58,237,0.4)] hover:scale-105 transition-all"
             >
               <Globe size={24} />
               Open Spark in your browser
-            </Link>
+            </a>
           </div>
 
           <p className="text-text-muted text-sm mb-2">

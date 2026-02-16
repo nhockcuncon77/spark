@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { Platform } from "react-native";
 import {
   Sparkles,
   MessageCircle,
@@ -12,15 +13,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
-  // Use insets.bottom for devices with gesture navigation (provides proper padding)
-  // Use minimum of 48 for devices without gestures (3-button navigation on older Android)
-  // Some Android versions with 3-button nav report insets.bottom as 0 or very small
-  const bottomPadding = Math.max(insets.bottom, 48);
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === "web" ? 16 : 48);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        ...(Platform.OS === "web" && {
+          sceneContainerStyle: { minHeight: "100vh", backgroundColor: "#0B0223" },
+        }),
         tabBarStyle: {
           backgroundColor: "transparent",
           borderTopColor: "rgba(255, 255, 255, 0.05)",

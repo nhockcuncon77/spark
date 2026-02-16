@@ -38,7 +38,28 @@ function copyRecursive(src, dest) {
   }
 }
 
+// So Expo entry script runs as ES module (fixes "Cannot use 'import.meta' outside a module" in iframe).
+function patchHtmlScriptModule(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      patchHtmlScriptModule(full);
+    } else if (entry.name.endsWith(".html")) {
+      let html = fs.readFileSync(full, "utf-8");
+      const patched = html.replace(
+        /<script\s+src="(\/app\/_expo\/static\/js\/web\/entry-[^"]+\.js)"\s*defer\s*><\/script>/g,
+        '<script type="module" src="$1"></script>'
+      );
+      if (patched !== html) {
+        fs.writeFileSync(full, patched, "utf-8");
+      }
+    }
+  }
+}
+
 copyRecursive(expoDist, publicApp);
+patchHtmlScriptModule(publicApp);
 console.log("Copied Expo web build to landing/public/app");
 console.log("Run landing build (npm run build) to produce dist/app");
 process.exit(0);

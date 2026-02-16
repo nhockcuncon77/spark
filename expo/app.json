@@ -7,36 +7,7 @@
     "icon": "./assets/main-dark.png",
     "scheme": "spark",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "icon": "./assets/spark.icon",
-      "supportsTablet": true,
-      "buildNumber": "0.6.10",
-      "bundleIdentifier": "com.yourapp.spark",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Spark uses your camera to take profile photos and verification selfies. For example, you can capture a new photo to add to your dating profile or take a verification selfie to get the verified badge.",
-        "NSMicrophoneUsageDescription": "Spark uses your microphone to record voice messages in chats with your matches. For example, you can send a voice note to someone you're chatting with instead of typing.",
-        "NSPhotoLibraryUsageDescription": "Spark accesses your photo library so you can select photos for your dating profile. For example, you can choose up to 6 photos from your gallery to show potential matches.",
-        "NSPhotoLibraryAddUsageDescription": "Spark saves photos to your library when you download images from chats. For example, you can save a photo that your match shared with you."
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#0e1710",
-        "foregroundImage": "./assets/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
-        "backgroundImage": "./assets/android/res/mipmap-xxxhdpi/ic_launcher_background.png",
-        "monochromeImage": "./assets/android/res/mipmap-xxxhdpi/ic_launcher.png"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "versionCode": 6010,
-      "package": "com.yourapp.spark",
-      "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
-      ]
-    },
+    "platforms": ["web"],
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -44,31 +15,9 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/android/res/mipmap-xxxhdpi/ic_launcher.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
-        }
-      ],
+      ["expo-splash-screen", { "backgroundColor": "#0B0223" }],
       "expo-web-browser",
-      "expo-secure-store",
-      "expo-sqlite",
-      "expo-font",
-      [
-        "expo-video",
-        {
-          "supportsBackgroundPlayback": true,
-          "supportsPictureInPicture": true
-        }
-      ],
-      "expo-audio",
-      "expo-localization"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -77,15 +26,7 @@
     },
     "extra": {
       "router": {},
-      "eas": {
-        "projectId": "bda153aa-b6d3-4b06-9c0f-a28402588af1"
-      }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/bda153aa-b6d3-4b06-9c0f-a28402588af1"
+      "eas": { "projectId": "bda153aa-b6d3-4b06-9c0f-a28402588af1" }
     }
   }
 }

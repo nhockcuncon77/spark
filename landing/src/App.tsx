@@ -64,6 +64,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/delete-account" element={<DeleteAccount />} />
+        {/* /app is served by Vite middleware (Expo app); login redirects to /app/ */}
       </Routes>
     </BrowserRouter>
   );

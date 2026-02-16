@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 // ============= Types =============
 
@@ -350,6 +351,17 @@ const initialState: Omit<
 
 // ============= Store =============
 
+// On web, skip rehydration entirely so we never overwrite auth that restoreSession just set from localStorage.
+// The app always starts from initial state; restoreSession then sets auth from spark_access_token + spark_user.
+function storageWithWebAuthSkip(base: StateStorage): StateStorage {
+  if (Platform.OS !== "web") return base;
+  return {
+    getItem: () => Promise.resolve(null),
+    setItem: base.setItem,
+    removeItem: base.removeItem,
+  };
+}
+
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -633,7 +645,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: "spark-storage",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => storageWithWebAuthSkip(AsyncStorage as unknown as StateStorage)),
       partialize: (state) => ({
         // Only persist these fields
         isAuthenticated: state.isAuthenticated,

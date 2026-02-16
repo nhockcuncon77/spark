@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useState, useMemo, useRef } from "react";
 import {
   View,
+  Text,
   ActivityIndicator,
   StyleSheet,
   Animated,
@@ -26,8 +27,9 @@ import { config } from "@/constants/config";
 import { usePushNotifications } from "../services/push-notification-service";
 import { useSubscriptionStore } from "../store/useSubscriptionStore";
 
-// Import the video asset
-const splashVideoSource = require("../assets/splash1.mp4");
+// Video splash only on native; web shows app immediately
+const splashVideoSource =
+  Platform.OS === "web" ? null : require("../assets/splash1.mp4");
 
 // Custom dark theme matching our design system
 const SparkDarkTheme = {
@@ -64,6 +66,13 @@ function RootLayoutNav() {
 
   // Restore session on app launch
   useEffect(() => {
+    setAuthLoading(true);
+    // On web: stop showing loading after 4s so user sees something if restore hangs
+    const timeout =
+      Platform.OS === "web"
+        ? setTimeout(() => setAuthLoading(false), 4000)
+        : undefined;
+
     const restoreSession = async () => {
       try {
         const result = await graphqlAuthService.restoreSession();
@@ -93,14 +102,18 @@ function RootLayoutNav() {
             apiService.setToken(storedToken);
             await setGraphQLToken(storedToken);
 
-            // Fetch subscription status and plans after successful auth
+            // Sync onboarding state so index redirects to app (not hobbies) when done
+            const status = graphqlAuthService.getOnboardingStatus(result.user);
+            if (status.isComplete) {
+              useStore.getState().completeOnboarding();
+            }
+
             fetchPlans();
             fetchSubscriptionStatus();
           }
         }
       } catch (error) {
         console.error("Failed to restore session:", error);
-        // Session restoration failed, clear auth state
         logout();
       } finally {
         setAuthLoading(false);
@@ -108,6 +121,9 @@ function RootLayoutNav() {
     };
 
     restoreSession();
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, [handleLogin, setAuthLoading, accessToken]);
 
   // Set API token when access token changes
@@ -125,10 +141,9 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!isAuthenticated && !inAuthGroup) {
-      // On web, send users to landing login so they sign in there and return to /app
       if (Platform.OS === "web" && typeof window !== "undefined") {
         const base = window.location.origin;
-        window.location.href = `${base}/login`;
+        window.location.replace(`${base}/login`);
         return;
       }
       router.replace("/(auth)/welcome");
@@ -165,19 +180,43 @@ function RootLayoutNav() {
     }
   }, [isAuthenticated, isLoading, segments, router]);
 
-  // Show loading screen while checking auth
+  // Show loading screen while checking auth (explicit styles on web so it's visible in iframe)
   if (isLoading) {
+    const loadingContainerStyle =
+      Platform.OS === "web"
+        ? {
+            flex: 1,
+            minHeight: "100vh",
+            width: "100%",
+            backgroundColor: "#0B0223",
+            justifyContent: "center" as const,
+            alignItems: "center" as const,
+          }
+        : undefined;
     return (
-      <View className="flex-1 bg-background items-center justify-center">
+      <View
+        style={loadingContainerStyle}
+        className="flex-1 bg-background items-center justify-center"
+      >
         <ActivityIndicator size="large" color="#7C3AED" />
+        {Platform.OS === "web" && (
+          <Text style={{ color: "#FFFFFF", marginTop: 16, fontSize: 16 }}>
+            Loading Spark...
+          </Text>
+        )}
       </View>
     );
   }
 
+  const stackContentStyle =
+    Platform.OS === "web"
+      ? { backgroundColor: "#0B0223", flex: 1, minHeight: "100vh" }
+      : { backgroundColor: "#0B0223", flex: 1 };
+
   return (
     <Stack
       screenOptions={{
-        contentStyle: { backgroundColor: "#0B0223", flex: 1 },
+        contentStyle: stackContentStyle,
       }}
     >
       <Stack.Screen
@@ -267,8 +306,7 @@ function SplashVideo({
   onFinish: () => void;
 }) {
   const hasCalledLoaded = useRef(false);
-
-  const player = useVideoPlayer(splashVideoSource, (p) => {
+  const player = useVideoPlayer(splashVideoSource!, (p) => {
     p.loop = false;
     p.play();
   });
@@ -319,7 +357,7 @@ function AnimatedSplashScreen({ children }: { children: React.ReactNode }) {
       Animated.timing(animation, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }).start(() => setAnimationComplete(true));
     }
   }, [isAppReady, isSplashVideoComplete, animation]);
@@ -346,11 +384,13 @@ function AnimatedSplashScreen({ children }: { children: React.ReactNode }) {
     );
   }, [onVideoLoaded, isWeb]);
 
-  // On web, still need to signal app ready (fonts + mount)
+  // On web: show app immediately, no splash overlay
   useEffect(() => {
     if (isWeb) {
       SplashScreen.hideAsync().catch(() => {});
       setAppReady(true);
+      setSplashVideoComplete(true);
+      setAnimationComplete(true);
     }
   }, [isWeb]);
 
@@ -453,8 +493,9 @@ export default function RootLayout() {
     "Nunito-Black": require("../assets/fonts/Nunito/static/Nunito-Black.ttf"),
   });
 
-  // Show nothing while fonts load - the splash video will be covering anyway
-  if (!fontsLoaded && !fontError) {
+  // On web, don't block on fonts so the UI always shows (fonts will apply when loaded)
+  const canShowUI = fontsLoaded || fontError || Platform.OS === "web";
+  if (!canShowUI) {
     return null;
   }
 
@@ -467,7 +508,12 @@ export default function RootLayout() {
 
   const rootStyle =
     Platform.OS === "web"
-      ? { flex: 1 as const, minHeight: Dimensions.get("window").height }
+      ? {
+          flex: 1 as const,
+          minHeight: "100vh",
+          width: "100%",
+          backgroundColor: "#0B0223",
+        }
       : { flex: 1 as const };
 
   return (

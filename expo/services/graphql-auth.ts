@@ -5,10 +5,13 @@ import {
   graphqlClient,
   setAccessToken,
   clearAuthTokens,
+  getGraphQLToken,
+  initializeToken,
 } from "./graphql-client";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { gql } from "urql";
+import { config } from "@/constants/config";
 
 // Storage keys
 const USER_KEY = "spark_user";
@@ -471,6 +474,34 @@ async function storeUser(user: GraphQLUser): Promise<void> {
   }
 }
 
+/** Normalize landing-stored user (camelCase) to GraphQLUser (snake_case) for web. */
+function normalizeStoredUser(parsed: unknown): GraphQLUser | null {
+  if (!parsed || typeof parsed !== "object") return null;
+  const o = parsed as Record<string, unknown>;
+  const first = (o.first_name as string) ?? (o.firstName as string);
+  const last = (o.last_name as string) ?? (o.lastName as string);
+  if (!o.id || !o.email) return null;
+  const traits = (o.personality_traits as { key: string; value: number }[]) ?? (o.personalityTraits as Record<string, number>);
+  const personalityTraits = Array.isArray(traits)
+    ? traits
+    : typeof traits === "object" && traits !== null
+      ? Object.entries(traits).map(([key, value]) => ({ key, value: Number(value) }))
+      : [];
+  return {
+    id: String(o.id),
+    first_name: first ?? "User",
+    last_name: last ?? "",
+    email: String(o.email),
+    bio: (o.bio as string) ?? "",
+    hobbies: Array.isArray(o.hobbies) ? (o.hobbies as string[]) : [],
+    interests: Array.isArray(o.interests) ? (o.interests as string[]) : [],
+    user_prompts: Array.isArray(o.user_prompts) ? (o.user_prompts as string[]) : [],
+    personality_traits: personalityTraits,
+    photos: Array.isArray(o.photos) ? (o.photos as string[]) : [],
+    is_verified: Boolean(o.is_verified ?? o.isVerified),
+  };
+}
+
 async function getStoredUser(): Promise<GraphQLUser | null> {
   try {
     let userJson: string | null;
@@ -480,7 +511,9 @@ async function getStoredUser(): Promise<GraphQLUser | null> {
       userJson = await SecureStore.getItemAsync(USER_KEY);
     }
     if (userJson) {
-      return JSON.parse(userJson);
+      const parsed: unknown = JSON.parse(userJson);
+      if (Platform.OS === "web") return normalizeStoredUser(parsed);
+      return parsed as GraphQLUser;
     }
     return null;
   } catch {
@@ -662,9 +695,11 @@ class GraphQLAuthService {
         };
       }
 
+      const token = getGraphQLToken();
       return {
         success: true,
         user: result.data.me,
+        accessToken: token ?? undefined,
       };
     } catch (error) {
       return handleError(error);
@@ -672,45 +707,74 @@ class GraphQLAuthService {
   }
 
   /**
-   * Restore session from stored credentials
-   * On web, initializes token from localStorage first (e.g. after login on landing).
+   * Restore session from stored credentials.
+   * On web: if the landing just wrote token + user to localStorage, we trust it and
+   * return success immediately so the user stays in the app. No getMe() required.
    */
   async restoreSession(): Promise<AuthResult> {
     try {
+      // Web: trust localStorage first (landing writes token + user before redirecting to /app)
+      if (Platform.OS === "web" && typeof localStorage !== "undefined") {
+        try {
+          const token = localStorage.getItem(config.ACCESS_TOKEN_KEY);
+          const userJson = localStorage.getItem(USER_KEY);
+          if (token && userJson) {
+            const parsed: unknown = JSON.parse(userJson);
+            const user = normalizeStoredUser(parsed);
+            if (user) {
+              await setAccessToken(token);
+              return {
+                success: true,
+                user,
+                accessToken: token,
+              };
+            }
+          }
+        } catch {
+          // Fall through to getMe/refresh path if parse fails
+        }
+      }
+
+      // Native, or web with no token+user in localStorage
       if (Platform.OS === "web") {
+        await setAccessToken(
+          typeof localStorage !== "undefined"
+            ? localStorage.getItem(config.ACCESS_TOKEN_KEY)
+            : null,
+        );
+      } else {
         await initializeToken();
       }
-      // On web we may have only token (e.g. from landing login); still try getMe
       const storedUser = await getStoredUser();
       if (!storedUser && Platform.OS !== "web") {
+        return { success: false, error: "No stored session" };
+      }
+
+      const meResult = await this.getMe();
+      if (meResult.success && meResult.user) {
+        await storeUser(meResult.user);
+        const token = getGraphQLToken();
         return {
-          success: false,
-          error: "No stored session",
+          success: true,
+          user: meResult.user,
+          accessToken: meResult.accessToken ?? token ?? undefined,
         };
       }
 
-      // Validate the session by fetching current user (token from storage on web)
-      const meResult = await this.getMe();
-
-      if (meResult.success && meResult.user) {
-        // Update stored user with fresh data
-        await storeUser(meResult.user);
-        return meResult;
-      }
-
-      // If fetching user failed, try to refresh token
       const refreshResult = await this.refreshToken();
-
       if (refreshResult.success) {
         return refreshResult;
       }
 
-      // Session is invalid, clear stored data
+      if (Platform.OS === "web" && storedUser) {
+        const token = localStorage.getItem(config.ACCESS_TOKEN_KEY);
+        if (token) {
+          return { success: true, user: storedUser, accessToken: token };
+        }
+      }
+
       await this.signOut();
-      return {
-        success: false,
-        error: "Session expired",
-      };
+      return { success: false, error: "Session expired" };
     } catch (error) {
       return handleError(error);
     }

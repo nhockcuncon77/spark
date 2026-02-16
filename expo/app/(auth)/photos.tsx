@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, Href } from "expo-router";
@@ -27,6 +28,7 @@ export default function PhotosScreen() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const pickImage = async () => {
     if (photos.length >= MAX_PHOTOS) {
@@ -102,6 +104,7 @@ export default function PhotosScreen() {
 
     setIsLoading(true);
     setUploadProgress("Uploading photos...");
+    setUploadError(null);
 
     try {
       // Prepare photos for upload
@@ -160,12 +163,16 @@ export default function PhotosScreen() {
       }
     } catch (error) {
       console.error("Photo upload error:", error);
-      Alert.alert(
-        "Upload Failed",
+      const message =
         error instanceof Error
           ? error.message
-          : "Failed to upload photos. Please try again.",
-      );
+          : "Failed to upload photos. Please try again.";
+      setUploadError(message);
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        window.alert(`Upload failed: ${message}`);
+      } else {
+        Alert.alert("Upload Failed", message);
+      }
     } finally {
       setIsLoading(false);
       setUploadProgress(null);
@@ -177,26 +184,34 @@ export default function PhotosScreen() {
   };
 
   const handleSkip = () => {
-    Alert.alert(
-      "Skip Photos?",
-      "Your profile will be less visible without photos. Are you sure?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Skip",
-          style: "destructive",
-          onPress: () => {
-            completeOnboarding();
-            router.replace("/(tabs)/swipe" as Href);
-          },
+    const message =
+      "Your profile will be less visible without photos. Are you sure?";
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined" && window.confirm(message)) {
+        completeOnboarding();
+        router.replace("/(tabs)/swipe" as Href);
+      }
+      return;
+    }
+    Alert.alert("Skip Photos?", message, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Skip",
+        style: "destructive",
+        onPress: () => {
+          completeOnboarding();
+          router.replace("/(tabs)/swipe" as Href);
         },
-      ],
-    );
+      }
+    ]);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 px-6 py-6">
+      <View
+        className="flex-1 px-6 py-6"
+        style={Platform.OS === "web" ? { position: "relative" } : undefined}
+      >
         {/* Header */}
         <View className="flex-row items-center mb-6">
           <Button
@@ -226,10 +241,11 @@ export default function PhotosScreen() {
           </Typography>
         </View>
 
-        {/* Photo Grid */}
+        {/* Photo Grid - zIndex 0 on web so footer stays on top */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 140 }}
+          contentContainerStyle={{ paddingBottom: 180 }}
+          style={Platform.OS === "web" ? { zIndex: 0 } : undefined}
         >
           <View className="flex-row flex-wrap gap-3">
             {/* Existing Photos */}
@@ -289,13 +305,35 @@ export default function PhotosScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Footer */}
-        <View className="absolute bottom-8 left-6 right-6 bg-background pt-4">
+        {/* Footer - fixed on web so nothing can overlap the buttons */}
+        <View
+          className="absolute bottom-8 left-6 right-6 bg-background pt-4"
+          style={
+            Platform.OS === "web"
+              ? {
+                  position: "fixed",
+                  left: 24,
+                  right: 24,
+                  bottom: 32,
+                  zIndex: 9999,
+                  pointerEvents: "auto",
+                }
+              : undefined
+          }
+        >
           {uploadProgress && (
             <View className="flex-row items-center justify-center mb-3">
               <ActivityIndicator color="#7C3AED" size="small" />
               <Typography variant="caption" color="muted" className="ml-2">
                 {uploadProgress}
+              </Typography>
+            </View>
+          )}
+
+          {uploadError && (
+            <View className="mb-3 py-2 px-3 rounded-lg bg-red-500/20">
+              <Typography variant="caption" color="danger" className="text-center">
+                {uploadError}
               </Typography>
             </View>
           )}
@@ -308,25 +346,50 @@ export default function PhotosScreen() {
             {photos.length} of {MAX_PHOTOS} photos added
           </Typography>
 
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={handleContinue}
-            disabled={isLoading || photos.length < MIN_PHOTOS}
-            className="w-full mb-3"
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              "Continue"
-            )}
-          </Button>
+          {Platform.OS === "web" ? (
+            <View className="w-full mb-3">
+              <button
+                type="button"
+                onClick={() => !isLoading && photos.length >= MIN_PHOTOS && handleContinue()}
+                disabled={isLoading || photos.length < MIN_PHOTOS}
+                style={{
+                  width: "100%",
+                  paddingVertical: 14,
+                  paddingHorizontal: 32,
+                  borderRadius: 9999,
+                  backgroundColor: isLoading || photos.length < MIN_PHOTOS ? "#2D2D3A" : "#7C3AED",
+                  color: "#FFFFFF",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: photos.length >= MIN_PHOTOS && !isLoading ? "pointer" : "default",
+                }}
+              >
+                {isLoading ? "Uploading…" : "Continue"}
+              </button>
+            </View>
+          ) : (
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={handleContinue}
+              disabled={isLoading || photos.length < MIN_PHOTOS}
+              className="w-full mb-3"
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                "Continue"
+              )}
+            </Button>
+          )}
 
           <Button
             variant="ghost"
             size="sm"
             onPress={handleSkip}
             className="w-full"
+            style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
           >
             <Typography variant="caption" color="muted">
               Skip for now

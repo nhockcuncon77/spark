@@ -10,6 +10,14 @@ Spark is a next-generation dating platform that challenges the appearance-first 
 
 **After login on the web** you get the full dating app at **`/app`**: **Discover** (profiles, no photos first), **Maytri**, **Community**, **Chat**, and **Profile**. Complete onboarding (hobbies, personality, photos) then browse, match, and chat. To deploy the app at `/app`, build the frontend with `npm run build:with-app` and set `EXPO_PUBLIC_SPARK_API_URL` to your backend URL (see [Deploy on Render](docs/RENDER_DEPLOY.md)).
 
+### Build and run locally (web app at `/app`)
+
+1. **Backend** (from repo root): `cd services && go run ./cmd` (or use your deployed API URL in the app config).
+2. **Expo web build** (so `/app` has the app): `cd expo && npm run build:web`
+3. **Copy into landing**: `cd landing && node scripts/copy-expo-web.cjs`
+4. **Run landing**: `cd landing && npm run dev`
+5. Open **http://localhost:5173/** (or the port Vite prints), then go to **/login** and after login you’ll be at **/app** with the full dating app.
+
 ---
 
 ## ✨ What is Spark?

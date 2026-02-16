@@ -1,0 +1,10 @@
+{
+  "name": "Spark",
+  "short_name": "Spark",
+  "description": "Personality-first dating app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B10",
+  "theme_color": "#0B0B10",
+  "icons": []
+}

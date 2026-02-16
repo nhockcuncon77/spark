@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 
 export const CTA = () => {
     return (
@@ -26,13 +25,13 @@ export const CTA = () => {
                     viewport={{ once: true }}
                     transition={{ delay: 0.2 }}
                 >
-                    <Link
-                        to="/join"
+                    <a
+                        href="/app/email-login"
                         className="relative group inline-block px-10 py-5 bg-white text-bg-primary font-bold rounded-full text-xl overflow-hidden transition-all hover:shadow-[0_0_50px_rgba(124,58,237,0.4)] hover:scale-105"
                     >
                         <span className="relative z-10">Join Spark</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-brand-purple-light to-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                    </Link>
+                    </a>
                 </motion.div>
             </div>
         </section>

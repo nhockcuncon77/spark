@@ -1,14 +1,22 @@
 import { Redirect, Href } from "expo-router";
+import { Platform } from "react-native";
 import { useStore } from "../store/useStore";
 import { View, ActivityIndicator } from "react-native";
 
 export default function Index() {
   const { isAuthenticated, isLoading, isOnboardingComplete } = useStore();
 
-  // Show loading while checking auth state
+  const loadingStyle =
+    Platform.OS === "web"
+      ? { flex: 1, minHeight: "100vh", backgroundColor: "#0B0223" }
+      : undefined;
+
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background items-center justify-center">
+      <View
+        style={loadingStyle}
+        className="flex-1 bg-background items-center justify-center"
+      >
         <ActivityIndicator size="large" color="#7C3AED" />
       </View>
     );

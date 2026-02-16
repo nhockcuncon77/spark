@@ -58,28 +58,42 @@ export async function uploadUserPhotos(
     formData.append("body", JSON.stringify(fileMetadata));
 
     // Add each file to the form
-    for (let i = 0; i < photos.length; i++) {
-      const photo = photos[i];
-
-      // Handle different URI formats
-      const fileUri = photo.uri;
-      const fileName = photo.key || `photo_${i}.jpg`;
-      const fileType = "image/jpeg";
-
-      // @ts-expect-error - React Native FormData accepts this format
-      formData.append(`file_${i}`, {
-        uri: fileUri,
-        name: fileName,
-        type: fileType,
-      });
+    if (Platform.OS === "web") {
+      // On web we must fetch blob/data URIs and append as Blob; FormData doesn't accept { uri, name, type }
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        const fileUri = photo.uri;
+        const fileName = photo.key || `photo_${i}.jpg`;
+        const res = await fetch(fileUri);
+        const blob = await res.blob();
+        formData.append(`file_${i}`, blob, fileName);
+      }
+    } else {
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        const fileUri = photo.uri;
+        const fileName = photo.key || `photo_${i}.jpg`;
+        const fileType = "image/jpeg";
+        // @ts-expect-error - React Native FormData accepts this format
+        formData.append(`file_${i}`, {
+          uri: fileUri,
+          name: fileName,
+          type: fileType,
+        });
+      }
     }
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+    };
+    if (Platform.OS !== "web") {
+      headers["Content-Type"] = "multipart/form-data";
+    }
+    // On web do NOT set Content-Type so browser sets multipart/form-data with boundary
 
     const response = await fetch(`${config.api_host}/v1/fs/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
+      headers,
       body: formData,
     });
 
