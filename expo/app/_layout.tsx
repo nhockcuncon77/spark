@@ -380,7 +380,57 @@ function AnimatedSplashScreen({ children }: { children: React.ReactNode }) {
   );
 }
 
+// On web, force root DOM elements to fill viewport so app content is visible (runs after mount).
+function useWebViewportHeight() {
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+
+    const styleId = "spark-viewport-fix";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = `
+        html, body { min-height: 100vh !important; height: 100% !important; margin: 0; }
+        #root, #root > * { min-height: 100vh !important; height: 100% !important; box-sizing: border-box; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const setHeight = () => {
+      const vh = window.innerHeight;
+      document.documentElement.style.setProperty("min-height", `${vh}px`);
+      document.body.style.setProperty("min-height", `${vh}px`);
+      const root = document.getElementById("root");
+      if (root) {
+        root.style.setProperty("min-height", `${vh}px`);
+        root.style.setProperty("height", "100%");
+        root.style.setProperty("display", "flex");
+        root.style.setProperty("flex-direction", "column");
+        let el: HTMLElement | null = root.firstElementChild as HTMLElement | null;
+        for (let i = 0; i < 4 && el; i++) {
+          el.style.setProperty("min-height", `${vh}px`);
+          el.style.setProperty("flex", "1");
+          el.style.setProperty("display", "flex");
+          el.style.setProperty("flex-direction", "column");
+          el = el.firstElementChild as HTMLElement | null;
+        }
+      }
+    };
+    setHeight();
+    window.addEventListener("resize", setHeight);
+    const t = setTimeout(setHeight, 50);
+    const t2 = setTimeout(setHeight, 500);
+    return () => {
+      window.removeEventListener("resize", setHeight);
+      clearTimeout(t);
+      clearTimeout(t2);
+    };
+  }, []);
+}
+
 export default function RootLayout() {
+  useWebViewportHeight();
+
   const [fontsLoaded, fontError] = useFonts({
     // Lexend fonts
     "Lexend-Thin": require("../assets/fonts/Lexend/static/Lexend-Thin.ttf"),

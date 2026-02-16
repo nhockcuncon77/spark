@@ -1,17 +1,16 @@
 package cmd
 
 import (
-	"spark/internal/constants"
 	"net/http"
-	"slices"
 	"strings"
+
+	"spark/internal/constants"
 )
 
 func setCORSHeaders(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
-	allowedOrigins := constants.GetAllowedOrigins()
 
-	if ok := slices.Contains(allowedOrigins, origin); ok {
+	if constants.IsOriginAllowed(origin) {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	}

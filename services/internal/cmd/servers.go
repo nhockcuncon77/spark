@@ -8,7 +8,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"slices"
 	"strings"
 	"time"
 
@@ -62,9 +61,7 @@ func StartGraphql(ctx context.Context) error {
 			CheckOrigin: func(r *http.Request) bool {
 				origin := r.Header.Get("Origin")
 
-				// Check against allowed origins
-				allowedOrigins := constants.GetAllowedOrigins()
-				if slices.Contains(allowedOrigins, origin) {
+				if constants.IsOriginAllowed(origin) {
 					return true
 				}
 

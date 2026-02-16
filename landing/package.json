@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:app": "(cd ../expo && npm install && npx expo export --platform web) && node scripts/copy-expo-web.cjs",
+    "build:app": "cd ../expo && npm install && npx expo export --platform web && cd ../landing && node scripts/copy-expo-web.cjs",
     "build:with-app": "npm run build:app && npm run build",
     "lint": "eslint .",
     "preview": "vite preview"
