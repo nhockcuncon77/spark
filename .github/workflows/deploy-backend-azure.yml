@@ -29,6 +29,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Go (for vendoring)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "services/go.mod"
+
+      - name: Vendor Go modules
+        run: |
+          cd services && go mod vendor
+        # Ensures Docker build uses vendor and does not hit proxy.golang.org
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

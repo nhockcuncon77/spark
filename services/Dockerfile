@@ -10,15 +10,15 @@ RUN apk --no-cache add \
 
 WORKDIR /build
 
-# Copy go mod files first for better caching
+# Copy go mod files and vendored deps (no network needed)
 COPY services/go.mod services/go.sum ./
-RUN go mod download
+COPY services/vendor ./vendor
 
 # Copy source code
 COPY services/ .
 
-# Build the binary with version
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s -X main.Version=${VERSION}" -o spark .
+# Build the binary with version (use vendor, no proxy access)
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -ldflags="-w -s -X main.Version=${VERSION}" -o spark .
 
 # Runtime stage
 FROM alpine:latest
